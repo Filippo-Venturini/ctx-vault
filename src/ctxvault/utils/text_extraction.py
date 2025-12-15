@@ -4,6 +4,7 @@ import markdown
 from strip_tags import strip_tags
 from pathlib import PurePosixPath
 from ctxvault.core.exceptions import UnsupportedFileTypeError, ExtractionError
+import hashlib
 
 SUPPORTED_EXT = {'.txt', '.md', '.pdf', '.docx'}
 
@@ -40,18 +41,21 @@ def _extract_from_docx(path: str)->str:
         return docx_content
     except Exception as e:
         raise ExtractionError(f"Failed to extract .docx {path}: {e}")
+    
+def get_doc_id(path: str)-> str:
+    return hashlib.sha256(path.encode()).hexdigest()
 
-def extract_text(path: str)->str:
+def extract_text(path: str)-> tuple[str, str]:
     suffix = PurePosixPath(path).suffix
 
     if suffix not in SUPPORTED_EXT:
         raise UnsupportedFileTypeError(f"Unsupported file type: {suffix}")
     
     if suffix == '.txt':
-        return _extract_from_txt(path=path)
+        return _extract_from_txt(path=path), suffix
     elif suffix == '.md':
-        return _extract_from_md(path=path)
+        return _extract_from_md(path=path), suffix
     elif suffix == '.pdf':
-        return _extract_from_pdf(path=path)
+        return _extract_from_pdf(path=path), suffix
     elif suffix == '.docx':
-        return _extract_from_docx(path=path)
+        return _extract_from_docx(path=path), suffix
