@@ -3,7 +3,7 @@ from chromadb import PersistentClient
 chroma_client = PersistentClient(path="./data/chroma")
 collection = chroma_client.get_or_create_collection(name="ctxvault")
 
-def add_document(ids: list[str], embeddings: list[list[float]], metadatas, chunks: list[str]):
+def add_document(ids: list[str], embeddings: list[list[float]], metadatas: list[dict], chunks: list[str]):
     collection.add(
         ids=ids, 
         embeddings=embeddings, 
@@ -18,5 +18,7 @@ def query(query_embedding: list[float],  n_results: int = 5)-> dict:
     )
     return results
 
-def delete_document(ids: list[str]):
-    collection.delete(ids=ids)
+def delete_document(doc_id: str):
+    collection.delete(
+        where={"doc_id": doc_id}
+    )
