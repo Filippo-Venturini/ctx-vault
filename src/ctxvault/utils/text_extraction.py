@@ -2,7 +2,7 @@ from pypdf import PdfReader
 from docx import Document
 import markdown
 from strip_tags import strip_tags
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from ctxvault.core.exceptions import UnsupportedFileTypeError, ExtractionError
 import hashlib
 

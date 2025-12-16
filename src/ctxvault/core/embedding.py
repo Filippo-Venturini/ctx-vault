@@ -10,5 +10,4 @@ def get_model():
 
 def embed_list(chunks: list[str])-> list[list[float]]:
     embeddings = get_model().encode(sentences=chunks)
-    print(embeddings.shape)
     return embeddings
