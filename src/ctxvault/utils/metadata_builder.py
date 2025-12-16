@@ -1,7 +1,4 @@
-import hashlib
-
-def get_chunk_id(chunk_id: int):
-    return hashlib.sha256(chunk_id.to_bytes(8, 'big')).hexdigest()
+from ctxvault.core.identifiers import get_chunk_id
 
 def build_chunks_metadatas(doc_id: str, chunks_size: int, source: str, filetype: str)-> tuple[list[str], list[dict]]:
     chunk_ids = []

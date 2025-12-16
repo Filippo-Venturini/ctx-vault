@@ -41,9 +41,6 @@ def _extract_from_docx(path: str)->str:
         return docx_content
     except Exception as e:
         raise ExtractionError(f"Failed to extract .docx {path}: {e}")
-    
-def get_doc_id(path: str)-> str:
-    return hashlib.sha256(path.encode()).hexdigest()
 
 def extract_text(path: str)-> tuple[str, str]:
     suffix = PurePosixPath(path).suffix

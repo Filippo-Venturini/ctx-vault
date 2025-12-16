@@ -1,4 +1,5 @@
-from ctxvault.utils.text_extraction import get_doc_id, extract_text
+from ctxvault.utils.text_extraction import extract_text
+from ctxvault.core.identifiers import get_doc_id
 from ctxvault.utils.chuncking import chunking
 from ctxvault.core.embedding import embed_list
 from ctxvault.storage.chroma_store import add_document, delete_document
