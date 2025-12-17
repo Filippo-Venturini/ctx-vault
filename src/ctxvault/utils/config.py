@@ -5,12 +5,15 @@ from ctxvault.core.exceptions import VaultNotInitializedError
 CONFIG_DIR = Path.home() / ".ctxvault"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
-def save_config(db_path: str)-> tuple[str,str]:
+def save_config(vault_path: str, db_path: str)-> str:
     CONFIG_DIR.mkdir(exist_ok=True)
-    config = {"db_path": db_path}
+    config = {
+        "vault_path": vault_path,
+        "db_path": db_path
+    }
     CONFIG_FILE.write_text(json.dumps(config))
 
-    return db_path, str(CONFIG_FILE)
+    return str(CONFIG_FILE)
 
 def load_config() -> dict:
     if not CONFIG_FILE.exists():

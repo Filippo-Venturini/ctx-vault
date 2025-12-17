@@ -6,7 +6,7 @@ from ctxvault.core.exceptions import VaultAlreadyExistsError
 app = typer.Typer()
 
 @app.command()
-def init(path: str = ".data/chroma"):
+def init(path: str = "."):
     try:
         typer.echo(f"Initializing Context Vault at: {path} ...")
         vault_path, config_path = vault.init_vault(path=path)
@@ -24,7 +24,7 @@ def index(path: str = "."):
     base = Path(path)
     for file in vault.iter_indexable_files(base):
         try:
-            vault.index_file(file)
+            vault.index_file(file_path=file)
             typer.secho(f"Indexed: {file}", fg=typer.colors.GREEN)
             indexed += 1
         except Exception as e:

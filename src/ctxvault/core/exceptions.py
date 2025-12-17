@@ -15,3 +15,7 @@ class VaultAlreadyExistsError(Exception):
 class VaultNotInitializedError(Exception):
     """Raised when a Context Vault is not initialized at that path."""
     pass
+
+class FileOutsideVault(Exception):
+    """Raised when try to index a file outside the Context Vault"""
+    pass
