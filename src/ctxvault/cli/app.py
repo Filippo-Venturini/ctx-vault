@@ -22,7 +22,7 @@ def init(path: str = "."):
 def index(path: str = "."):
     indexed = skipped = 0
     base = Path(path)
-    for file in vault.iter_indexable_files(base):
+    for file in vault.iter_files(base):
         try:
             vault.index_file(file_path=file)
             typer.secho(f"Indexed: {file}", fg=typer.colors.GREEN)
@@ -61,8 +61,23 @@ def query(text: str = ""):
         typer.echo()
 
 @app.command()
-def delete(path: str):
-    typer.echo(f"Delete file/directory: {path}")
+def delete(path: str = "."):
+    deleted = skipped = 0
+    base = Path(path)
+    for file in vault.iter_files(base):
+        try:
+            vault.delete_file(file_path=file)
+            typer.secho(f"Deleted: {file}", fg=typer.colors.RED)
+            deleted += 1
+        except Exception as e:
+            typer.secho(
+                f"Skipped: {file} ({e})",
+                fg=typer.colors.YELLOW
+            )
+            skipped += 1
+
+    typer.secho(f"\Deleted: {deleted}", fg=typer.colors.RED, bold=True)
+    typer.secho(f"Skipped: {skipped}", fg=typer.colors.YELLOW, bold=True)
 
 @app.command()
 def sync():

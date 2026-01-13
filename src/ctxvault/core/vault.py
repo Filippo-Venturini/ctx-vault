@@ -18,7 +18,7 @@ def init_vault(path: str)-> tuple[str, str]:
     config_path = save_config(vault_path=str(vault_path), db_path=str(db_path))
     return str(vault_path), config_path
 
-def iter_indexable_files(path: Path):
+def iter_files(path: Path):
     if path.is_file():
         yield path
     else:
@@ -58,3 +58,16 @@ def query(text: str)-> QueryResult:
         ))
     docs_match.append(DocumentMatch(doc_id="", source="", filetype="", score=0.0, chunks=chunks_match))
     return QueryResult(query=text, results=docs_match)
+
+def delete_file(file_path: Path)-> None:
+    vault_config = load_config()
+
+    if vault_config is None:
+        raise VaultNotInitializedError("Context Vault not initialized in this path. Execute 'ctxvault init' first.")
+    
+    vault_path = Path(vault_config["vault_path"])
+
+    if not file_path.resolve().is_relative_to(vault_path):
+        raise FileOutsideVault("The file to delete is already outside the Context Vault.")
+    
+    indexer.delete_file(file_path=str(file_path))

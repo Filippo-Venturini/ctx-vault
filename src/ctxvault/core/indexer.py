@@ -18,11 +18,9 @@ def index_file(file_path: str)-> dict:
     add_document(ids=chunk_ids, embeddings=embeddings, metadatas=metadatas, chunks=chunks)
 
 def delete_file(file_path: str)-> None:
-    print(f"Deleting file: {file_path}")
     doc_id = get_doc_id(path=file_path)
     delete_document(doc_id=doc_id)
 
 def reindex_file(file_path: str)->None:
-    print(f"Reindexing file: {file_path}")
     delete_file(file_path=file_path)
     index_file(file_path=file_path)
