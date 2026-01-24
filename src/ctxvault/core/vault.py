@@ -1,4 +1,5 @@
 from pathlib import Path
+from ctxvault.models.documents import DocumentInfo
 from ctxvault.models.query_result import ChunkMatch, DocumentMatch, QueryResult
 from ctxvault.utils.config import load_config, save_config
 from ctxvault.core.exceptions import FileOutsideVault, UnsupportedFileTypeError, VaultAlreadyExistsError, VaultNotInitializedError
@@ -85,3 +86,6 @@ def reindex_file(file_path: Path)-> None:
         raise FileOutsideVault("The file to reindex is outside the Context Vault.")
 
     indexer.reindex_file(file_path=str(file_path))
+
+def list_documents()-> list[DocumentInfo]:
+    return querying.list_documents()

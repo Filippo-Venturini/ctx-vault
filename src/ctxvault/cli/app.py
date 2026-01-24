@@ -104,7 +104,13 @@ def sync():
 
 @app.command()
 def list():
-    typer.echo(f"Listing vault files")
+    documents = vault.list_documents()
+
+    typer.secho(f"\nFound {len(documents)} documents\n", fg=typer.colors.GREEN, bold=True)
+
+    for i in range(len(documents)):
+        typer.echo(f"{i+1}. {documents[i].source} ({documents[i].chunks_count} chunks)")
+
 
 def main():
     app()

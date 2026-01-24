@@ -1,5 +1,6 @@
 from chromadb import PersistentClient
 from pathlib import Path
+from ctxvault.models.documents import DocumentInfo
 from ctxvault.utils.config import get_db_path
 
 _chroma_client = None
@@ -35,3 +36,8 @@ def delete_document(doc_id: str):
     collection.delete(
         where={"doc_id": doc_id}
     )
+
+def get_all_metadatas():
+    collection = get_collection()
+    results = collection.get(include=["metadatas"])
+    return results["metadatas"]
