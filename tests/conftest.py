@@ -46,10 +46,11 @@ def mock_vault_config(tmp_path):
     vault_path = tmp_path / "vault"
     vault_path.mkdir()
     config_path = tmp_path / "config.json"
+    db_path = tmp_path / "chroma"
     
     fake_config = {
         "vault_path": str(vault_path),
-        "db_path": str(tmp_path / "chroma")
+        "db_path": str(db_path)
     }
 
     def _load_config():
@@ -58,18 +59,25 @@ def mock_vault_config(tmp_path):
     def _save_config(*args, **kwargs):
         if kwargs:
             vault_path_str = kwargs.get('vault_path')
-            db_path = kwargs.get('db_path')
+            db_path_str = kwargs.get('db_path')
         else:
             vault_path_str = args[0] if len(args) > 0 else None
-            db_path = args[1] if len(args) > 1 else None
+            db_path_str = args[1] if len(args) > 1 else None
         
-        if vault_path_str and db_path:
-            fake_config.update({"vault_path": vault_path_str, "db_path": db_path})
+        if vault_path_str and db_path_str:
+            fake_config.update({"vault_path": vault_path_str, "db_path": db_path_str})
         return str(config_path)
+    
+    def _get_db_path():
+        return str(db_path)
 
+    # Mocka in tutti i posti dove viene usato
     with patch("ctxvault.core.vault.load_config", side_effect=_load_config):
         with patch("ctxvault.core.vault.save_config", side_effect=_save_config):
-            yield vault_path
+            with patch("ctxvault.utils.config.load_config", side_effect=_load_config):
+                with patch("ctxvault.utils.config.get_db_path", side_effect=_get_db_path):
+                    with patch("ctxvault.storage.chroma_store.get_db_path", side_effect=_get_db_path):
+                        yield vault_path
 
 @pytest.fixture
 def temp_docs(mock_vault_config):
