@@ -23,5 +23,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
     
+    - name: Debug - Show structure
+      run: |
+        ls -la
+        ls -la src/ || echo "No src directory"
+        ls -la tests/
+    
+    - name: Debug - Show Python path
+      run: |
+        python -c "import sys; print('\n'.join(sys.path))"
+    
+    - name: Debug - Try importing
+      run: |
+        python -c "import ctxvault; print('Import OK')" || echo "Import failed"
+    
     - name: Run tests
-      run: pytest -v
+      run: pytest -v --tb=short
