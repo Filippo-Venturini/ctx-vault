@@ -203,4 +203,5 @@ pip-selfcheck.json
 
 data/
 
-TODO.md
+TODO_CLI.md
+TODO_API.md
