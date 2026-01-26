@@ -71,7 +71,6 @@ def mock_vault_config(tmp_path):
     def _get_db_path():
         return str(db_path)
 
-    # Mocka in tutti i posti dove viene usato
     with patch("ctxvault.core.vault.load_config", side_effect=_load_config):
         with patch("ctxvault.core.vault.save_config", side_effect=_save_config):
             with patch("ctxvault.utils.config.load_config", side_effect=_load_config):
