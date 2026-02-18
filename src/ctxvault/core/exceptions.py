@@ -28,6 +28,10 @@ class FileOutsideVaultError(Exception):
     """Raised when try to index a file outside the Context Vault."""
     pass
 
+class PathOutsideVaultError(Exception):
+    """Raised when try to perform an action outside the Context Vault."""
+    pass
+
 class FileAlreadyExistError(Exception):
     """Raised when try to write a file that already exist in the Context Vault without the overwrite flag."""
     pass

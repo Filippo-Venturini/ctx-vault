@@ -1,50 +1,42 @@
 from pathlib import Path
 import typer
 from ctxvault.core import vault
-from ctxvault.core.exceptions import VaultAlreadyExistsError, VaultNotFoundError
+from ctxvault.core.exceptions import PathOutsideVaultError, VaultAlreadyExistsError, VaultNotFoundError
 
 app = typer.Typer()
 
 @app.command()
-def init(name: str = typer.Argument("vault"), path: str = typer.Argument(".")):
+def init(name: str = typer.Argument("my-vault"), path: str = None):
     try:
-        typer.echo(f"Initializing Context Vault {name} at: {path} ...")
-        vault_path, config_path = vault.init_vault(name=name, path=path)
+        typer.echo(f"Initializing Context Vault {name}...")
+        vault_path, config_path = vault.init_vault(vault_name=name, path=path)
         typer.secho("Context Vault initialized succesfully!", fg=typer.colors.GREEN, bold=True)
         typer.echo(f"Context Vault path: {vault_path}")
         typer.echo(f"Config file path: {config_path}")
     except VaultAlreadyExistsError as e:
         typer.secho("Warning: Context Vault already initialized in this path!", fg=typer.colors.YELLOW, bold=True)
-        typer.echo(f"Existing vault path: {e.existing_path}")
+        typer.echo(f"Error during initialization: {e.existing_path}")
+        raise typer.Exit(1)
+
+@app.command()
+def index(name: str = typer.Argument("my-vault"), path: str = typer.Argument(None)):
+    try:
+        indexed_files, skipped_files = vault.index_files(vault_name=name, path=path)
+
+        for file in indexed_files:
+            typer.secho(f"Indexed: {file}", fg=typer.colors.GREEN)
+
+        for file in skipped_files:
+            typer.secho(f"Skipped: {file}", fg=typer.colors.YELLOW)
+
+        typer.secho(f"\nIndexed: {len(indexed_files)}", fg=typer.colors.GREEN, bold=True)
+        typer.secho(f"Skipped: {len(skipped_files)}", fg=typer.colors.YELLOW, bold=True)
+    except Exception as e:
+        typer.secho(f"Error during indexing: {e}", fg=typer.colors.RED, bold=True)
         raise typer.Exit(1)
     
 @app.command()
-def use(name: str = typer.Argument("vault")):
-    try:
-        typer.echo(f"Switching active vault to {name} ...")
-        vault_path, db_path = vault.use_vault(name=name)
-        typer.secho(f"Context Vault {name} is now active", fg=typer.colors.GREEN, bold=True)
-        typer.echo(f"Context Vault path: {vault_path}")
-        typer.echo(f"Database file path: {db_path}")
-    except VaultNotFoundError as e:
-        typer.secho(f"Warning: Context Vault named {name} doesn't exist!", fg=typer.colors.YELLOW, bold=True)
-        raise typer.Exit(1)
-
-@app.command()
-def index(path: str = typer.Argument("."), name: str = None):
-    indexed_files, skipped_files = vault.index_files(base_path=Path(path), vault_name=name)
-
-    for file in indexed_files:
-        typer.secho(f"Indexed: {file}", fg=typer.colors.GREEN)
-
-    for file in skipped_files:
-        typer.secho(f"Skipped: {file}", fg=typer.colors.YELLOW)
-
-    typer.secho(f"Indexed: {len(indexed_files)}", fg=typer.colors.GREEN, bold=True)
-    typer.secho(f"Skipped: {len(skipped_files)}", fg=typer.colors.YELLOW, bold=True)
-
-@app.command()
-def query(text: str = typer.Argument(""), name: str = None):
+def query(name: str = typer.Argument("my-vault"), text: str = typer.Argument(""), ):
     result = vault.query(text=text, vault_name=name)
     if not result.results:
         typer.secho("No results found.", fg=typer.colors.YELLOW)
@@ -67,64 +59,59 @@ def query(text: str = typer.Argument(""), name: str = None):
     typer.echo("\n" + "─" * 80)
 
 @app.command()
-def delete(path: str = typer.Argument("."), name: str = None):
-    deleted_files, skipped_files = vault.delete_files(base_path=Path(path), vault_name=name)
+def delete(name: str = typer.Argument("my-vault"), path: str = typer.Argument(None)):
+    try:
+        deleted_files, skipped_files = vault.delete_files(vault_name=name, path=path)
 
-    for file in deleted_files:
-        typer.secho(f"Deleted: {file}", fg=typer.colors.RED)
+        for file in deleted_files:
+            typer.secho(f"Deleted: {file}", fg=typer.colors.RED)
 
-    for file in skipped_files:
-        typer.secho(f"Skipped: {file}", fg=typer.colors.YELLOW)
+        for file in skipped_files:
+            typer.secho(f"Skipped: {file}", fg=typer.colors.YELLOW)
 
-    typer.secho(f"Deleted: {len(deleted_files)}", fg=typer.colors.RED, bold=True)
-    typer.secho(f"Skipped: {len(skipped_files)}", fg=typer.colors.YELLOW, bold=True)
+        typer.secho(f"Deleted: {len(deleted_files)}", fg=typer.colors.RED, bold=True)
+        typer.secho(f"Skipped: {len(skipped_files)}", fg=typer.colors.YELLOW, bold=True)
+    except Exception as e:
+        typer.secho(f"Error during deleting: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
 
 @app.command()
-def reindex(path: str = typer.Argument("."), name: str = None):
-    reindexed_files, skipped_files = vault.reindex_files(base_path=Path(path), vault_name=name)
+def reindex(name: str = typer.Argument("my-vault"), path: str = typer.Argument(None)):
+    try:
+        reindexed_files, skipped_files = vault.reindex_files(vault_name=name, path=path)
 
-    for file in reindexed_files:
-        typer.secho(f"Reindexed: {file}", fg=typer.colors.GREEN)
+        for file in reindexed_files:
+            typer.secho(f"Reindexed: {file}", fg=typer.colors.GREEN)
 
-    for file in skipped_files:
-        typer.secho(f"Skipped: {file}", fg=typer.colors.YELLOW)
+        for file in skipped_files:
+            typer.secho(f"Skipped: {file}", fg=typer.colors.YELLOW)
 
-    typer.secho(f"Reindexed: {len(reindexed_files)}", fg=typer.colors.GREEN, bold=True)
-    typer.secho(f"Skipped: {len(skipped_files)}", fg=typer.colors.YELLOW, bold=True)
+        typer.secho(f"Reindexed: {len(reindexed_files)}", fg=typer.colors.GREEN, bold=True)
+        typer.secho(f"Skipped: {len(skipped_files)}", fg=typer.colors.YELLOW, bold=True)
+    except Exception as e:
+        typer.secho(f"Error during indexing: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
 
 @app.command()
 def sync():
-    typer.echo(f"Synchronizing vault")
+    typer.echo(f"Synchronizing vault placeholder")
 
 @app.command()
 def vaults():
     vaults = vault.list_vaults()
     typer.secho(f"\nFound {len(vaults)} vaults\n", fg=typer.colors.GREEN, bold=True)
 
-    active = vault.get_active_vault_name()
-
     for v in vaults:
-        if v == active:
-            typer.secho(f"* {v}", fg=typer.colors.CYAN, bold=True)
-        else:
-            typer.echo(f"  {v}")
+        typer.echo(f">{v}")
 
 @app.command()
-def docs(name: str = None):
+def docs(name: str = typer.Argument("my-vault")):
     documents = vault.list_documents(vault_name=name)
 
     typer.secho(f"\nFound {len(documents)} documents\n", fg=typer.colors.GREEN, bold=True)
 
     for i in range(len(documents)):
         typer.echo(f"{i+1}. {documents[i].source} ({documents[i].chunks_count} chunks)")
-
-@app.callback()
-def main_callback():
-    try:
-        active = vault.get_active_vault_name()
-        typer.secho(f"[vault: {active}] \n", fg=typer.colors.CYAN, nl=False)
-    except:
-        pass
 
 def main():
     app()

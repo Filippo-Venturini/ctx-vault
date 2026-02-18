@@ -1,22 +1,25 @@
 from pathlib import Path
 from ctxvault.models.documents import DocumentInfo
 from ctxvault.models.query_result import ChunkMatch, QueryResult
-from ctxvault.utils.config import create_vault, get_active_vault_config, get_vault_config, set_active_vault, get_vaults
-from ctxvault.utils.config import get_active_vault_name as _get_active_vault_name
-from ctxvault.core.exceptions import FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, UnsupportedFileTypeError
+from ctxvault.utils.config import create_vault, get_vault_config, get_vaults
+from ctxvault.core.exceptions import FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, PathOutsideVaultError, UnsupportedFileTypeError
 from ctxvault.utils.text_extraction import SUPPORTED_EXT
 from ctxvault.core import indexer
 from ctxvault.core import querying
 
-def init_vault(name: str, path: str)-> tuple[str, str]:
-    vault_path, config_path = create_vault(name=name, vault_path=path)
+def _get_base_path(path: Path, vault_path: Path)-> Path:
+    if not path:
+        base_path = vault_path
+    else:
+        base_path = Path(path)
+        if not base_path.resolve().is_relative_to(vault_path):
+            raise PathOutsideVaultError(f"The path must be inside the Context Vault.")
+
+def init_vault(vault_name: str, path: str | None = None)-> tuple[str, str]:
+
+    #TODO: check if a vault already exist in this path
+    vault_path, config_path = create_vault(vault_name=vault_name, vault_path=path)
     return str(vault_path), config_path
-
-def use_vault(name: str)-> tuple[str, str]:
-    set_active_vault(name=name)
-    active_vault_config = get_active_vault_config()
-
-    return active_vault_config["vault_path"], active_vault_config["db_path"]
 
 def iter_files(path: Path, exclude_dirs: list[Path] | None = None):
     if path.is_file():
@@ -32,14 +35,13 @@ def iter_files(path: Path, exclude_dirs: list[Path] | None = None):
 
         yield p
 
-def index_files(base_path: Path, vault_name: str | None = None)-> tuple[list[str], list[str]]:
-    if vault_name:
-        vault_config = get_vault_config(vault_name)
-    else:
-        vault_config = get_active_vault_config()
+def index_files(vault_name: str, path: str | None = None)-> tuple[list[str], list[str]]:
+    vault_config = get_vault_config(vault_name)
 
     vault_path = Path(vault_config["vault_path"])
     db_path = Path(vault_config["db_path"])
+
+    base_path = _get_base_path(path=path, vault_path=vault_path)
     
     indexed_files = []
     skipped_files = []
@@ -58,15 +60,12 @@ def index_file(file_path:Path, vault_config: dict, agent_metadata: dict | None =
         raise UnsupportedFileTypeError("File type not supported.")
 
     if not file_path.resolve().is_relative_to(Path(vault_config["vault_path"])):
-        raise FileOutsideVaultError("The file to index is outside the active Context Vault.")
+        raise FileOutsideVaultError("The file to index is outside the Context Vault.")
 
     indexer.index_file(file_path=str(file_path), config=vault_config, agent_metadata=agent_metadata)
 
-def query(text: str, vault_name: str | None = None, filters: dict | None = None)-> QueryResult:
-    if vault_name:
-        vault_config = get_vault_config(vault_name)
-    else:
-        vault_config = get_active_vault_config()
+def query(text: str, vault_name: str, filters: dict | None = None)-> QueryResult:
+    vault_config = get_vault_config(vault_name)
 
     result_dict = querying.query(query_txt=text, config=vault_config, filters=filters)
     documents = result_dict["documents"][0]
@@ -89,11 +88,10 @@ def query(text: str, vault_name: str | None = None, filters: dict | None = None)
     
     return QueryResult(query=text, results=chunks_match)
 
-def delete_files(base_path: Path, vault_name: str | None = None)-> tuple[list[str], list[str]]:
-    if vault_name:
-        vault_config = get_vault_config(vault_name)
-    else:
-        vault_config = get_active_vault_config()
+def delete_files(vault_name: str, path: str | None = None)-> tuple[list[str], list[str]]:
+    vault_config = get_vault_config(vault_name)
+
+    base_path = _get_base_path(path=path, vault_path=vault_config["vault_path"])
 
     deleted_files = []
     skipped_files = []
@@ -119,12 +117,10 @@ def delete_file(file_path: Path, vault_config: dict)-> None:
     
     indexer.delete_file(file_path=str(file_path), config=vault_config)
 
-def reindex_files(base_path: Path, vault_name: str | None = None)-> tuple[list[str], list[str]]:
+def reindex_files(vault_name: str, path: str | None = None)-> tuple[list[str], list[str]]:
+    vault_config = get_vault_config(vault_name)
 
-    if vault_name:
-        vault_config = get_vault_config(vault_name)
-    else:
-        vault_config = get_active_vault_config()
+    base_path = _get_base_path(path=path, vault_path=vault_config["vault_path"])
 
     reindexed_files = []
     skipped_files = []
@@ -149,25 +145,16 @@ def reindex_file(file_path: Path, vault_config: dict)-> None:
 
     indexer.reindex_file(file_path=str(file_path), config=vault_config)
 
-def list_documents(vault_name: str | None = None)-> list[DocumentInfo]:
-    if vault_name:
-        vault_config = get_vault_config(vault_name)
-    else:
-        vault_config = get_active_vault_config()
+def list_documents(vault_name: str)-> list[DocumentInfo]:
+    vault_config = get_vault_config(vault_name)
+
     return querying.list_documents(config=vault_config)
 
 def list_vaults()-> list[str]:
     return get_vaults()
 
-def get_active_vault_name()-> str:
-    return _get_active_vault_name()
-
-def write_file(file_path: Path, content: str, overwrite: bool = True, vault_name: str | None = None, agent_metadata: dict | None = None)-> None:
-
-    if vault_name:
-        vault_config = get_vault_config(vault_name)
-    else:
-        vault_config = get_active_vault_config()
+def write_file(vault_name: str, file_path: Path, content: str, overwrite: bool = True, agent_metadata: dict | None = None)-> None:
+    vault_config = get_vault_config(vault_name)
 
     if not file_path.suffix:
         raise FileTypeNotPresentError("File type not present in the file path.")
