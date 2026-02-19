@@ -15,6 +15,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/ctxvault.svg)](https://pypi.org/project/ctxvault/)
 ![Python](https://img.shields.io/pypi/pyversions/ctxvault)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/ctxvault)
+![Tests](https://github.com/Filippo-Venturini/ctxvault/actions/workflows/test.yml/badge.svg)
 
 </div>
 

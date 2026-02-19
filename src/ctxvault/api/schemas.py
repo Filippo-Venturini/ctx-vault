@@ -25,10 +25,6 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     results: list[ChunkMatch]
 
-class DeleteRequest(BaseModel):
-    vault_name: str
-    file_path: str | None = None
-
 class DeleteResponse(BaseModel):
     deleted_files: list[str]
     skipped_files: list[str]
@@ -41,10 +37,10 @@ class ReindexResponse(BaseModel):
     reindexed_files: list[str]
     skipped_files: list[str]
 
-class ListRequest(BaseModel):
-    vault_name: str
+class ListVaultsResponse(BaseModel):
+    vaults: list[str]
 
-class ListResponse(BaseModel):
+class ListDocsResponse(BaseModel):
     vault_name: str
     documents: list[DocumentInfo]
 

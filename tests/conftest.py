@@ -1,82 +1,84 @@
+from ctxvault.utils.config import create_vault
 import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 @pytest.fixture(autouse=True)
 def mock_chroma(monkeypatch):
-    monkeypatch.setattr("ctxvault.core.embedding.embed_list", lambda chunks: [[0.1]*384]*len(chunks))
+    monkeypatch.setattr(
+        "ctxvault.core.embedding.embed_list",
+        lambda chunks: [[0.1] * 384] * len(chunks),
+    )
 
     mock_collection = MagicMock()
     mock_collection.add = MagicMock()
     mock_collection.delete = MagicMock()
-    mock_collection.query = MagicMock(return_value={
-        "documents": [["mock_doc"]], 
-        "metadatas": [[{"chunk_id": "1", "chunk_index": 0, "doc_id": "1", "source": "mock_doc"}]], 
-        "distances": [[0.99]]
-    })
-    mock_collection.get = MagicMock(return_value={
-        "metadatas": [{"doc_id": "1", "source": "mock_doc", "filetype": "txt"}]
-    })
+    mock_collection.query = MagicMock(
+        return_value={
+            "documents": [["mock_doc"]],
+            "metadatas": [[{
+                "chunk_id": "1",
+                "chunk_index": 0,
+                "doc_id": "1",
+                "source": "mock_doc"
+            }]],
+            "distances": [[0.99]],
+        }
+    )
+    mock_collection.get = MagicMock(
+        return_value={
+            "metadatas": [{
+                "doc_id": "1",
+                "source": "mock_doc",
+                "filetype": "txt",
+            }]
+        }
+    )
 
     mock_client = MagicMock()
     mock_client.get_or_create_collection = MagicMock(return_value=mock_collection)
 
-    monkeypatch.setattr("ctxvault.storage.chroma_store.PersistentClient", lambda path: mock_client)
+    monkeypatch.setattr(
+        "ctxvault.storage.chroma_store.PersistentClient",
+        lambda path: mock_client,
+    )
     monkeypatch.setattr("ctxvault.storage.chroma_store._collection", None)
 
 @pytest.fixture
-def mock_vault_not_initialized(tmp_path):
-    vault_path = tmp_path / "vault"
-    vault_path.mkdir()
-    config_path = tmp_path / "config.json"
-    
-    def _load_config():
-        return None  
+def mock_global_config(tmp_path, monkeypatch):
+    config_dir = tmp_path / ".ctxvault"
+    config_file = config_dir / "config.json"
+    vaults_dir = config_dir / "vaults"
 
-    def _save_config(*args, **kwargs):
-        config_path.write_text('{"vault_path": "test", "db_path": "test"}')
-        return str(config_path)
+    monkeypatch.setattr(
+        "ctxvault.utils.config.CONFIG_DIR",
+        config_dir,
+    )
+    monkeypatch.setattr(
+        "ctxvault.utils.config.CONFIG_FILE",
+        config_file,
+    )
+    monkeypatch.setattr(
+        "ctxvault.utils.config.VAULTS_DIR",
+        vaults_dir,
+    )
 
-    with patch("ctxvault.core.vault.load_config", side_effect=_load_config):
-        with patch("ctxvault.core.vault.save_config", side_effect=_save_config):
-            yield vault_path
+    return config_dir
 
 @pytest.fixture
-def mock_vault_config(tmp_path):
-    vault_path = tmp_path / "vault"
+def mock_vault_not_initialized(mock_global_config, tmp_path):
+    vault_path = tmp_path / "orphan_vault"
     vault_path.mkdir()
-    config_path = tmp_path / "config.json"
-    db_path = tmp_path / "chroma"
-    
-    fake_config = {
-        "vault_path": str(vault_path),
-        "db_path": str(db_path)
-    }
 
-    def _load_config():
-        return fake_config
+    return vault_path
 
-    def _save_config(*args, **kwargs):
-        if kwargs:
-            vault_path_str = kwargs.get('vault_path')
-            db_path_str = kwargs.get('db_path')
-        else:
-            vault_path_str = args[0] if len(args) > 0 else None
-            db_path_str = args[1] if len(args) > 1 else None
-        
-        if vault_path_str and db_path_str:
-            fake_config.update({"vault_path": vault_path_str, "db_path": db_path_str})
-        return str(config_path)
-    
-    def _get_db_path():
-        return str(db_path)
+@pytest.fixture
+def mock_vault_config(mock_global_config):
+    vault_name = "test_vault"
 
-    with patch("ctxvault.core.vault.load_config", side_effect=_load_config):
-        with patch("ctxvault.core.vault.save_config", side_effect=_save_config):
-            with patch("ctxvault.utils.config.load_config", side_effect=_load_config):
-                with patch("ctxvault.utils.config.get_db_path", side_effect=_get_db_path):
-                    with patch("ctxvault.storage.chroma_store.get_db_path", side_effect=_get_db_path):
-                        yield vault_path
+    vault_path, config_path = create_vault(vault_name, "")
+
+    return Path(vault_path)
 
 @pytest.fixture
 def temp_docs(mock_vault_config):
@@ -86,7 +88,3 @@ def temp_docs(mock_vault_config):
     (docs / "file1.txt").write_text("Content of file 1")
     (docs / "file2.txt").write_text("Content of file 2")
     return docs
-
-@pytest.fixture
-def temp_db(tmp_path):
-    return tmp_path / "vault.db"

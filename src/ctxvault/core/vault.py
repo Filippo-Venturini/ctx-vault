@@ -7,13 +7,14 @@ from ctxvault.utils.text_extraction import SUPPORTED_EXT
 from ctxvault.core import indexer
 from ctxvault.core import querying
 
-def _get_base_path(path: Path, vault_path: Path)-> Path:
+def _get_base_path(path: str, vault_path: Path)-> Path:
     if not path:
         base_path = vault_path
     else:
         base_path = Path(path)
         if not base_path.resolve().is_relative_to(vault_path):
             raise PathOutsideVaultError(f"The path must be inside the Context Vault.")
+    return base_path
 
 def init_vault(vault_name: str, path: str | None = None)-> tuple[str, str]:
 
@@ -22,10 +23,14 @@ def init_vault(vault_name: str, path: str | None = None)-> tuple[str, str]:
     return str(vault_path), config_path
 
 def iter_files(path: Path, exclude_dirs: list[Path] | None = None):
+    if exclude_dirs is None:
+        exclude_dirs = []
+
     if path.is_file():
         if not any(path.resolve().is_relative_to(excl) for excl in exclude_dirs):
             yield path
         return
+
     for p in path.rglob("*"):
         if not p.is_file():
             continue
@@ -90,13 +95,15 @@ def query(text: str, vault_name: str, filters: dict | None = None)-> QueryResult
 
 def delete_files(vault_name: str, path: str | None = None)-> tuple[list[str], list[str]]:
     vault_config = get_vault_config(vault_name)
+    vault_path=Path(vault_config["vault_path"])
+    db_path = Path(vault_config["db_path"])
 
-    base_path = _get_base_path(path=path, vault_path=vault_config["vault_path"])
+    base_path = _get_base_path(path=path, vault_path=vault_path)
 
     deleted_files = []
     skipped_files = []
 
-    for file in iter_files(path=base_path):
+    for file in iter_files(path=base_path, exclude_dirs=[db_path]):
         try:
             delete_file(file_path=file, vault_config=vault_config)
             deleted_files.append(str(file))
@@ -119,13 +126,15 @@ def delete_file(file_path: Path, vault_config: dict)-> None:
 
 def reindex_files(vault_name: str, path: str | None = None)-> tuple[list[str], list[str]]:
     vault_config = get_vault_config(vault_name)
+    vault_path=Path(vault_config["vault_path"])
+    db_path = Path(vault_config["db_path"])
 
-    base_path = _get_base_path(path=path, vault_path=vault_config["vault_path"])
+    base_path = _get_base_path(path=path, vault_path=vault_path)
 
     reindexed_files = []
     skipped_files = []
 
-    for file in iter_files(path=base_path):
+    for file in iter_files(path=base_path, exclude_dirs=[db_path]):
         try:
             reindex_file(file_path=file, vault_config=vault_config)
             reindexed_files.append(str(file))
@@ -174,4 +183,4 @@ def write_file(vault_name: str, file_path: Path, content: str, overwrite: bool =
     abs_path.parent.mkdir(parents=True, exist_ok=True)
     abs_path.write_text(content, encoding="utf-8")
 
-    index_file(file_path=abs_path, agent_metadata=agent_metadata)
+    index_file(file_path=abs_path, agent_metadata=agent_metadata, vault_config=vault_config)

@@ -6,7 +6,7 @@ from ctxvault.core.exceptions import PathOutsideVaultError, VaultAlreadyExistsEr
 app = typer.Typer()
 
 @app.command()
-def init(name: str = typer.Argument("my-vault"), path: str = None):
+def init(name: str = typer.Argument("my-vault"), path: str = typer.Option(None, "--path")):
     try:
         typer.echo(f"Initializing Context Vault {name}...")
         vault_path, config_path = vault.init_vault(vault_name=name, path=path)
@@ -19,7 +19,7 @@ def init(name: str = typer.Argument("my-vault"), path: str = None):
         raise typer.Exit(1)
 
 @app.command()
-def index(name: str = typer.Argument("my-vault"), path: str = typer.Argument(None)):
+def index(name: str = typer.Argument("my-vault"), path: str = typer.Option(None, "--path")):
     try:
         indexed_files, skipped_files = vault.index_files(vault_name=name, path=path)
 
@@ -36,7 +36,7 @@ def index(name: str = typer.Argument("my-vault"), path: str = typer.Argument(Non
         raise typer.Exit(1)
     
 @app.command()
-def query(name: str = typer.Argument("my-vault"), text: str = typer.Argument(""), ):
+def query(name: str = typer.Argument("my-vault"), text: str = typer.Argument("")):
     result = vault.query(text=text, vault_name=name)
     if not result.results:
         typer.secho("No results found.", fg=typer.colors.YELLOW)
@@ -59,7 +59,7 @@ def query(name: str = typer.Argument("my-vault"), text: str = typer.Argument("")
     typer.echo("\n" + "─" * 80)
 
 @app.command()
-def delete(name: str = typer.Argument("my-vault"), path: str = typer.Argument(None)):
+def delete(name: str = typer.Argument("my-vault"), path: str = typer.Option(None, "--path")):
     try:
         deleted_files, skipped_files = vault.delete_files(vault_name=name, path=path)
 
@@ -76,7 +76,7 @@ def delete(name: str = typer.Argument("my-vault"), path: str = typer.Argument(No
         raise typer.Exit(1)
 
 @app.command()
-def reindex(name: str = typer.Argument("my-vault"), path: str = typer.Argument(None)):
+def reindex(name: str = typer.Argument("my-vault"), path: str = typer.Option(None, "--path")):
     try:
         reindexed_files, skipped_files = vault.reindex_files(vault_name=name, path=path)
 
