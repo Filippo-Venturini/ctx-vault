@@ -9,7 +9,7 @@ Scenario:
 - Get answers grounded in your documents
 
 Run:
-    python langchain_rag_example.py
+    python app.py
 
 Requires:
     export OPENAI_API_KEY=your_key

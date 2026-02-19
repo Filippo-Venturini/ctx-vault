@@ -9,7 +9,7 @@ Scenario:
 - Router: intelligently routes queries based on content
 
 Run:
-    python langgraph_multivault_example.py
+    python app.py
 
 Note: Requires OPENAI_API_KEY environment variable
 """

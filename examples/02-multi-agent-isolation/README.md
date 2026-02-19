@@ -38,7 +38,7 @@ export OPENAI_API_KEY="your-key-here"
 
 ### 3. Run
 ```bash
-python langgraph_multivault_example.py
+python app.py
 ```
 
 ## What Happens
