@@ -75,7 +75,7 @@ async def list(vault_name: str)-> ListDocsResponse:
 async def write(write_request: WriteRequest)-> WriteResponse:
     try:
         vault.write_file(vault_name=write_request.vault_name,
-                         file_path=write_request.file_path, 
+                         file_path=Path(write_request.file_path), 
                          content=write_request.content, 
                          overwrite=write_request.overwrite, 
                          agent_metadata=write_request.agent_metadata.model_dump() if write_request.agent_metadata else None)
