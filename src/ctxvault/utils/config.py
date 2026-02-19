@@ -30,6 +30,8 @@ def create_vault(vault_name: str, vault_path: str) -> tuple[str, str]:
         vault_path = Path(vault_path)
 
     db_path = vault_path / "chroma"
+    print("vault_path:" + str(vault_path))
+    print("db_path:" + str(db_path))
     vault_path.mkdir(parents=True, exist_ok=True)
     db_path.mkdir(parents=True, exist_ok=True)    
 

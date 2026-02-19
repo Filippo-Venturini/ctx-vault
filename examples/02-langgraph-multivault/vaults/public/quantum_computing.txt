@@ -1,0 +1,27 @@
+Quantum Computing: A Technical Overview
+
+Quantum computing represents a fundamental shift in computational paradigm. Unlike classical computers that use bits (0 or 1), quantum computers use quantum bits or qubits, which can exist in superposition - simultaneously representing both 0 and 1.
+
+Key Principles:
+
+Superposition allows quantum systems to process multiple states simultaneously. When a qubit is measured, it collapses to either 0 or 1, but before measurement, it exists in both states with certain probabilities.
+
+Entanglement is a quantum phenomenon where qubits become correlated in ways that have no classical analog. When qubits are entangled, measuring one instantly affects the others, regardless of distance.
+
+Quantum gates manipulate qubits through operations like Hadamard gates (creating superposition), CNOT gates (creating entanglement), and Pauli gates (rotation operations).
+
+Current Applications:
+
+Cryptography: Shor's algorithm can factor large numbers exponentially faster than classical algorithms, threatening current encryption methods but also enabling quantum-secure communication through quantum key distribution.
+
+Optimization: Quantum annealing shows promise for solving complex optimization problems in logistics, finance, and machine learning.
+
+Simulation: Quantum computers can naturally simulate quantum systems, advancing drug discovery and materials science.
+
+Challenges:
+
+Decoherence occurs when qubits lose their quantum properties due to environmental interference. Current systems require extreme cooling (near absolute zero) and sophisticated error correction.
+
+Scalability remains difficult. Building large-scale quantum computers with thousands of stable qubits is one of the biggest engineering challenges of our time.
+
+Leading research institutions include IBM, Google, and academic centers worldwide. Google's 2019 "quantum supremacy" claim demonstrated a quantum computer solving a problem impractical for classical computers, though debates about practical applications continue.

@@ -11,7 +11,7 @@ ctxvault_router = APIRouter(prefix="/ctxvault", tags=["CtxVault"])
 @ctxvault_router.post("/init")
 async def init(init_request: InitRequest)-> InitResponse:
     try:
-        vault_path, config_path = vault.init_vault(vault_name=init_request.vault_name)
+        vault_path, config_path = vault.init_vault(vault_name=init_request.vault_name, path=init_request.vault_path)
         return InitResponse(vault_path=vault_path, config_path=config_path)
     except VaultAlreadyExistsError as e:
         raise HTTPException(status_code=400, detail=f"Vault already initialized at {e.existing_path}")

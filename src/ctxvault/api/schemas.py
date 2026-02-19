@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 class InitRequest(BaseModel):
     vault_name: str
+    vault_path: str | None = None
 
 class InitResponse(BaseModel):
     vault_path: str

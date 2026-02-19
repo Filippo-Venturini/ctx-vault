@@ -1,0 +1,76 @@
+Q4 2024 Financial Results - Internal Summary
+CONFIDENTIAL
+
+Revenue Performance:
+
+Total Revenue: $127.3M (up 23% YoY)
+- Enterprise: $89.1M (70% of revenue, +28% YoY)
+- SMB: $31.2M (24% of revenue, +12% YoY)  
+- Other: $7.0M (6% of revenue, +8% YoY)
+
+Profitability:
+
+Gross Margin: 68% (up from 65% in Q4 2023)
+Operating Income: $18.7M (operating margin 14.7%)
+Net Income: $14.2M (net margin 11.2%)
+
+Key Metrics:
+
+Annual Recurring Revenue (ARR): $445M (+31% YoY)
+Net Revenue Retention: 118%
+Customer Count: 3,847 (up 420 from Q3)
+Average Contract Value: $115,700 (+9% YoY)
+
+Departmental Performance:
+
+R&D Investment: $34.2M (26.9% of revenue)
+- Major projects: Project Atlas ($4.5M), ML Infrastructure ($8.1M), Security ($6.8M)
+- Headcount: 187 engineers (up 23 from Q3)
+
+Sales & Marketing: $42.1M (33.1% of revenue)
+- CAC Payback Period: 14 months (improved from 17 months)
+- New enterprise deals: 67 (average deal size $287K)
+
+Customer Success:
+- Churn rate: 4.2% annually (industry benchmark: 8-10%)
+- NPS Score: 68 (up from 64 in Q3)
+- Support ticket resolution: average 4.3 hours (target: <6 hours)
+
+Product Highlights:
+
+Successfully launched Quantum-Enhanced Search beta to 50 pilot customers. Early feedback extremely positive - 9.1/10 average rating.
+
+AI Assistant feature reached 72% adoption among enterprise customers, becoming most-used feature after core search.
+
+Mobile app downloads: 145K (up 89% from Q3), monthly active users: 67K.
+
+Regional Breakdown:
+
+North America: $89.4M (70% of revenue)
+Europe: $27.8M (22% of revenue)
+Asia-Pacific: $10.1M (8% of revenue)
+
+European expansion ahead of plan - opened London office in November, hired 12 people. GDPR compliance audit completed successfully.
+
+Challenges:
+
+Enterprise sales cycle lengthened to 4.7 months (from 4.1 months in Q3) due to increased budget scrutiny. 
+
+Cloud infrastructure costs grew 31% ($12.3M) outpacing revenue growth. Optimization initiative launched to improve efficiency.
+
+Competitive pressure intensifying in SMB segment - three new entrants with aggressive pricing.
+
+2025 Outlook:
+
+Revenue guidance: $550-580M (30-37% growth)
+Operating margin target: 16-18%
+Hiring plan: 80 new employees (50 R&D, 30 GTM)
+
+Strategic priorities:
+1. Project Atlas launch and monetization
+2. International expansion (targeting Germany, Australia)
+3. Platform ecosystem development (API partnerships)
+
+Board approved $25M investment in quantum computing infrastructure to support Atlas and future innovation.
+
+INTERNAL USE ONLY - CONFIDENTIAL

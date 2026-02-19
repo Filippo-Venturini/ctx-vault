@@ -201,7 +201,7 @@ pip-selfcheck.json
 .history
 .ionide
 
-data/
-
 TODO_CLI.md
 TODO_API.md
+
+chroma/

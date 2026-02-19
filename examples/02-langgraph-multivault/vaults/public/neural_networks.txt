@@ -1,0 +1,42 @@
+Neural Networks and Deep Learning
+
+Neural networks are computing systems inspired by biological neural networks in animal brains. They consist of interconnected nodes (neurons) organized in layers that process information through weighted connections.
+
+Architecture Fundamentals:
+
+Input Layer receives raw data - images, text, numerical features. Each neuron corresponds to one feature or pixel.
+
+Hidden Layers perform transformations through matrix multiplications and activation functions. Deep networks have multiple hidden layers, enabling hierarchical feature learning.
+
+Output Layer produces final predictions - classification probabilities, regression values, or generated content.
+
+Activation Functions introduce non-linearity:
+- ReLU (Rectified Linear Unit): f(x) = max(0,x) - most common, computationally efficient
+- Sigmoid: f(x) = 1/(1+e^-x) - outputs between 0 and 1, useful for probabilities
+- Tanh: f(x) = (e^x - e^-x)/(e^x + e^-x) - outputs between -1 and 1
+
+Training Process:
+
+Forward Propagation: Input data flows through the network, producing predictions.
+
+Loss Calculation: Measures how far predictions are from actual values using functions like cross-entropy (classification) or mean squared error (regression).
+
+Backpropagation: Calculates gradients of loss with respect to each weight using the chain rule of calculus.
+
+Gradient Descent: Updates weights to minimize loss. Variants include SGD, Adam, and RMSprop optimizers.
+
+Key Architectures:
+
+Convolutional Neural Networks (CNNs): Specialized for image processing. Use convolutional layers that detect local patterns (edges, textures) and pooling layers that reduce spatial dimensions.
+
+Recurrent Neural Networks (RNNs): Process sequential data. Maintain hidden states that capture temporal dependencies. LSTM and GRU variants solve vanishing gradient problems.
+
+Transformers: Use self-attention mechanisms to process sequences in parallel. Foundation for modern LLMs like GPT and BERT. Attention weights determine which parts of input are most relevant for each output.
+
+Practical Considerations:
+
+Overfitting occurs when models memorize training data rather than learning generalizable patterns. Prevented through regularization (L1/L2), dropout, and data augmentation.
+
+Hyperparameter tuning affects performance significantly: learning rate, batch size, network depth, and width require careful optimization.
+
+Modern frameworks like PyTorch and TensorFlow provide automatic differentiation and GPU acceleration, making experimentation accessible to researchers and practitioners.

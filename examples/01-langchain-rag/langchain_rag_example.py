@@ -1,17 +1,18 @@
 """
-LangChain + CtxVault local RAG demo
+LangChain + CtxVault Personal RAG Demo
+
+Demonstrates building a personal research assistant over your document collection.
+
+Scenario:
+- Index papers, notes, and articles on RAG (Retrieval-Augmented Generation)
+- Query your personal knowledge base semantically
+- Get answers grounded in your documents
 
 Run:
-    python app.py
+    python langchain_rag_example.py
 
-What happens automatically:
-- starts CtxVault API
-- initializes vault
-- indexes sample_docs/
-- launches interactive chat
-
-Optional:
-    export OPENAI_API_KEY=...
+Requires:
+    export OPENAI_API_KEY=your_key
 """
 
 import os
@@ -23,103 +24,98 @@ from pathlib import Path
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
 
 API_URL = "http://127.0.0.1:8000"
 BASE_DIR = Path(__file__).parent
-VAULT_PATH = str(BASE_DIR / "vault")
+VAULT_NAME = "research-vault"
 
 # ANSI colors for CLI
-OK = "\033[92m"
-RUN = "\033[94m"
-INFO = "\033[0m"
-WARN = "\033[93m"
-ENDC = "\033[0m"
+BLUE = "\033[94m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RESET = "\033[0m"
 
-# ---------------------------------------------------------------------
+# =====================================================================
 # Server
-# ---------------------------------------------------------------------
+# =====================================================================
 
 def start_server():
     """Start CtxVault API in background."""
-    print(f"{RUN}[RUN] Starting CtxVault API...{ENDC}")
-
+    print(f"{BLUE}[SERVER] Starting CtxVault API...{RESET}")
+    
     proc = subprocess.Popen(
-        ["uvicorn", "ctxvault.api.app:app"],
+        ["uvicorn", "ctxvault.api.app:app", "--host", "127.0.0.1", "--port", "8000"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-
-    for _ in range(20):
+    
+    for _ in range(30):
         try:
-            requests.get(API_URL, timeout=0.5)
-            print(f"{OK}[OK] API ready{ENDC}\n")
+            requests.get(API_URL, timeout=1)
+            print(f"{GREEN}[SERVER] API ready{RESET}\n")
             return proc
         except:
             time.sleep(0.3)
-
+    
     raise RuntimeError("CtxVault API failed to start")
 
-# ---------------------------------------------------------------------
+# =====================================================================
 # Vault helpers
-# ---------------------------------------------------------------------
+# =====================================================================
 
 def api(method: str, path: str, **kwargs):
     return requests.request(method, f"{API_URL}/ctxvault{path}", timeout=None, **kwargs)
 
 def setup_vault():
-    print(f"{INFO}[INFO] Initializing vault...{ENDC}")
-    api("POST", "/init", json={"vault_path": VAULT_PATH})
-    print(f"{OK}[OK] Vault initialized{ENDC}\n")
+    """Initialize vault and index documents."""
+    print(f"{BLUE}[SETUP] Initializing vault '{VAULT_NAME}'...{RESET}")
+    api("POST", "/init", json={"vault_name": VAULT_NAME, "vault_path": str(BASE_DIR / VAULT_NAME)})
+    print(f"{GREEN}[SETUP] Vault initialized{RESET}\n")
+    
+    print(f"{BLUE}[SETUP] Indexing research documents...{RESET}")
 
-    print(f"{INFO}[INFO] Indexing knowledge base...{ENDC}")
-    api("PUT", "/index", json={"file_path": VAULT_PATH})
-    print(f"{OK}[OK] Vault ready{ENDC}\n")
-
-# ---------------------------------------------------------------------
-# Retriever
-# ---------------------------------------------------------------------
+    api("PUT", "/index", json={"vault_name": VAULT_NAME})
+    print(f"{GREEN}[SETUP] Documents indexed{RESET}\n")
 
 def retrieve(query: str, top_k: int = 3):
-    res = api("POST", "/query", json={"query": query, "top_k": top_k}).json()
+    """Retrieve relevant documents from vault."""
+    res = api("POST", "/query", json={
+        "vault_name": VAULT_NAME,
+        "query": query,
+        "top_k": top_k
+    }).json()
+    
     return [
         Document(page_content=r["text"], metadata={"source": r.get("source", "?")})
         for r in res.get("results", [])
     ]
 
-# ---------------------------------------------------------------------
-# LLM (real or retrieval-only)
-# ---------------------------------------------------------------------
-
-def get_llm():
-    if not os.getenv("OPENAI_API_KEY"):
-        print(f"{WARN}[WARN] OPENAI_API_KEY not set – running in retrieval-only mode. Only documents will be shown.{ENDC}\n")
-        return None
-
-    from langchain_openai import ChatOpenAI
-    print(f"{INFO}[INFO] Using OpenAI GPT-4o-mini{ENDC}\n")
-    return ChatOpenAI(model="gpt-4o-mini", temperature=0)
-
-# ---------------------------------------------------------------------
-# RAG chain
-# ---------------------------------------------------------------------
+# =====================================================================
+# RAG Chain
+# =====================================================================
 
 def create_chain():
-    llm = get_llm()
-    if not llm:
-        return None
-
+    """Build LangChain RAG pipeline."""
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    
     prompt = ChatPromptTemplate.from_template(
-        """Answer using ONLY this context:
+        """You are a research assistant. Answer the question using ONLY the provided context from the user's document collection.
 
-        {context}
+Context from documents:
+{context}
 
-        Question: {question}
-        """
-        )
+Question: {question}
 
+Answer:"""
+    )
+    
     def format_docs(docs):
-        return "\n\n".join(d.page_content for d in docs)
-
+        return "\n\n".join([
+            f"[Source: {d.metadata.get('source', '?')}]\n{d.page_content}"
+            for d in docs
+        ])
+    
     chain = (
         {
             "context": lambda x: format_docs(retrieve(x["question"])),
@@ -129,44 +125,60 @@ def create_chain():
         | llm
         | StrOutputParser()
     )
-
+    
     return chain
 
-# ---------------------------------------------------------------------
+# =====================================================================
 # Main
-# ---------------------------------------------------------------------
+# =====================================================================
 
 def main():
-    Path(VAULT_PATH).mkdir(exist_ok=True)
-
+    if not os.getenv("OPENAI_API_KEY"):
+        print(f"{YELLOW}ERROR: OPENAI_API_KEY environment variable not set{RESET}")
+        print(f"{YELLOW}Please set it with: export OPENAI_API_KEY=your_key{RESET}")
+        return
+    
+    print("=" * 70)
+    print("Personal Research Assistant Demo")
+    print("=" * 70)
+    print()
+    
     server = start_server()
-
+    
     try:
         setup_vault()
         chain = create_chain()
-
-        print(f"{INFO}[INFO] Enter your query (type 'quit' to exit):{ENDC}\n")
-
-        while True:
-            q = input(">>> ").strip()
-            if q.lower() in {"quit", "exit"}:
-                print(f"{OK}[OK] Exiting...{ENDC}")
-                break
-
-            if chain:
-                answer = chain.invoke({"question": q})
-                print(f">>> {answer}\n")
-            else:
-                docs = retrieve(q)
-                print(f"{INFO}[INFO] Retrieved documents:\n{ENDC}")
-                for d in docs:
-                    print(f"{RUN}--- {d.metadata.get('source','?')} ---{ENDC}")
-                    print(f"{d.page_content[:500]}\n")
-                    print("-" * 50)
-
+        
+        # Example queries demonstrating RAG capabilities
+        queries = [
+            "What are the main benefits of using RAG over fine-tuning?",
+            "How does the RAG architecture work? Explain the pipeline.",
+            "Compare RAG-Sequence and RAG-Token approaches from the paper."
+        ]
+        
+        for query in queries:
+            print("=" * 70)
+            print(f"{BLUE}QUERY:{RESET} {query}")
+            print("=" * 70)
+            print()
+            
+            # Show retrieval
+            docs = retrieve(query, top_k=2)
+            print(f"{YELLOW}Retrieved from:{RESET}")
+            for doc in docs:
+                source = doc.metadata.get('source', '?')
+                print(f"  - {source}")
+            print()
+            
+            # Generate answer
+            answer = chain.invoke({"question": query})
+            print(f"{GREEN}ANSWER:{RESET}")
+            print(answer)
+            print("\n")
+    
     finally:
         server.terminate()
-
+        print(f"{BLUE}[SERVER] Stopped{RESET}")
 
 if __name__ == "__main__":
     main()
