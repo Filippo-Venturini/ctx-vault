@@ -1,67 +1,64 @@
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo_white.svg" width="200" height="200">
-  
-  <source media="(prefers-color-scheme: light)" srcset="assets/logo_black.svg" width="200" height="200">
-  
-  <img alt="Logo" src="logo_white_final.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo_white_text.svg" width="400" height="100">
+  <source media="(prefers-color-scheme: light)" srcset="assets/logo_black_text.svg" width="400" height="100">
+  <img alt="Logo" src="assets/logo_white.svg">
 </picture>
 
-**Semantic knowledge vault for AI agents and RAG pipelines**
-
-*Local-first semantic memory you control. No cloud, no complexity.*
+<h3>Semantic knowledge vault for AI agents and RAG pipelines</h3>
+<p><i>Local-first semantic memory you control. No cloud, no complexity.</i></p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://img.shields.io/pypi/v/ctxvault.svg)](https://pypi.org/project/ctxvault/)
 ![Python](https://img.shields.io/pypi/pyversions/ctxvault)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/ctxvault)
-![Tests](https://github.com/Filippo-Venturini/ctxvault/actions/workflows/test.yml/badge.svg)
+
+[Installation](#installation) • [Quick Start](#quick-start) • [Examples](#examples) • [Documentation](#documentation) • [API Reference](#api-reference)
 
 </div>
 
-# CtxVault
+---
 
-CtxVault is a **local semantic search engine** for LLM applications.
+## What is CtxVault?
 
-Index documents, generate embeddings, and query with semantic search — all on your machine.
+CtxVault is a **local semantic search engine** for LLM applications. Index documents, generate embeddings, and query with semantic search — all running on your machine.
 
 **Built for:**
-- **Personal RAG** - your private knowledge base with semantic search
-- **Multi-agent systems** - shared memory layer across agents
-- **Isolated contexts** - separate vaults for different knowledge domains
+- **Personal RAG** - private knowledge bases with semantic search
+- **Multi-agent systems** - shared or isolated memory layers  
+- **Persistent memory** - agent memory that survives across sessions
+- **Privacy-first workflows** - your data never leaves your machine
 
-Works as CLI tool or API server. Zero cloud dependencies.
-
----
-
-## Why CtxVault
-
-**Local-first**
-Runs entirely offline with no external dependencies. Your knowledge base stays on your machine, and you control where the retrieved context goes.
-
-**Multi-vault architecture**
-Run isolated vaults for different contexts - personal notes, company docs, or agent-specific knowledge.
-
-**Agent-ready**
-Built-in API server for seamless integration with LangChain, LangGraph, and custom agent workflows.
-
-**Developer-first**
-Simple CLI for manual work, HTTP API for automation. Works offline, no setup complexity.
+Works as both a CLI tool and API server. Zero cloud dependencies.
 
 ---
 
-# Installation
+## Why CtxVault?
 
-Python **3.10+**
+**100% Local**  
+No API keys, no cloud services, no telemetry. Runs entirely offline with your own compute.
 
-### From PyPI (recommended)
+**Multi-Vault Architecture**  
+Run isolated vaults for different contexts. Separate personal notes from company docs, or give each agent its own knowledge domain.
 
+**Agent-Ready**  
+Built-in FastAPI server for seamless integration with LangChain, LangGraph, and custom agent workflows. Write and query memory programmatically.
+
+**Developer-First**  
+Simple CLI for manual work. HTTP API for automation. Works offline. No configuration overhead.
+
+---
+
+## Installation
+
+**Requirements:** Python 3.10+
+
+### From PyPI
 ```bash
 pip install ctxvault
 ```
 
-### From source (dev mode)
-
+### From source
 ```bash
 git clone https://github.com/Filippo-Venturini/ctxvault
 cd ctxvault
@@ -70,221 +67,368 @@ pip install -e .
 
 ---
 
-# Quickstart (CLI)
+## Quick Start
 
-Initialize a vault:
-
+### CLI Usage
 ```bash
-ctxvault init ./my-vault
-```
+# Initialize a vault
+ctxvault init my-vault
 
-Add documents:
+# Index documents
+ctxvault index my-vault/docs
 
-```bash
-ctxvault index ./my-vault/docs
-```
+# Query semantically
+ctxvault query "transformer architecture"
 
-Query:
-
-```bash
-ctxvault query "what is project Orion?"
-```
-
-List indexed documents:
-
-```bash
+# List indexed documents
 ctxvault list
 ```
 
----
+### API Usage
 
-# CLI Commands
-
-### init
-
-Initialize a vault directory.
-
+Start the server:
 ```bash
-ctxvault init <path>
+uvicorn ctxvault.api.app:app
 ```
+
+Query programmatically:
+```python
+import requests
+
+response = requests.post("http://127.0.0.1:8000/ctxvault/query", json={
+    "vault_name": "my-vault",
+    "query": "transformer architecture",
+    "top_k": 5
+})
+
+results = response.json()["results"]
+```
+
+Full API documentation at `http://127.0.0.1:8000/docs` (Swagger UI).
 
 ---
 
-### index
+## Examples
 
-Index a file or directory recursively.
+Production-ready examples in [`/examples`](examples/):
 
+**[01-simple-rag](examples/01-simple-rag/)** - Personal research assistant with semantic search over multi-format documents (PDF, MD, TXT, DOCX)
+
+**[02-multi-agent-isolation](examples/02-multi-agent-isolation/)** - Privacy-aware multi-agent system with isolated knowledge vaults per agent
+
+**[03-persistent-memory](examples/03-persistent-memory/)** - Agent with long-term memory that persists and recalls semantically across sessions
+
+Each example includes setup instructions, code, and detailed README.
+
+---
+
+## Documentation
+
+### CLI Commands
+
+All commands require a vault name. Default vault location: `~/.ctxvault/vaults/<name>/`
+
+---
+
+#### `init`
+Initialize a new vault.
 ```bash
-ctxvault index <path>
+ctxvault init <name> [--path <path>]
 ```
 
----
+**Arguments:**
+- `<name>` - Vault name (required)
+- `--path <path>` - Custom vault location (optional, default: `~/.ctxvault/vaults/<name>`)
 
-### query
-
-Semantic search.
-
+**Example:**
 ```bash
-ctxvault query "<text>"
+ctxvault init my-vault
+ctxvault init my-vault --path /data/vaults
 ```
-
-Returns the most relevant chunks.
 
 ---
 
-### delete
-
-Remove a document from the vault.
-
+#### `index`
+Index documents in vault.
 ```bash
-ctxvault delete <path>
+ctxvault index <vault> [--path <path>]
 ```
 
----
+**Arguments:**
+- `<vault>` - Vault name (required)
+- `--path <path>` - Specific file or directory to index (optional, default: entire vault)
 
-### reindex
-
-Re-index a modified file.
-
+**Example:**
 ```bash
-ctxvault reindex <path>
+ctxvault index my-vault
+ctxvault index my-vault --path docs/papers/
 ```
 
 ---
 
-### list
-
-Show all indexed documents with metadata.
-
+#### `query`
+Perform semantic search.
 ```bash
-ctxvault list
+ctxvault query <vault> <text>
 ```
 
----
+**Arguments:**
+- `<vault>` - Vault name (required)
+- `<text>` - Search query (required)
 
-# API Server (FastAPI)
-
-CtxVault can also run as an HTTP service for agents or external tools.
-
-## Start the server
-
-From your environment:
-
+**Example:**
 ```bash
-uvicorn ctxvault.api.main:app --reload
-```
-
-Server will start at:
-
-```
-http://127.0.0.1:8000
+ctxvault query my-vault "attention mechanisms"
 ```
 
 ---
 
-## Interactive docs (recommended)
-
-FastAPI automatically provides Swagger UI:
-
-```
-http://127.0.0.1:8000/docs
+#### `list`
+List all indexed documents in vault.
+```bash
+ctxvault list <vault>
 ```
 
-Use this to explore and test endpoints interactively.
+**Arguments:**
+- `<vault>` - Vault name (required)
 
-This is preferred over manually documenting every request.
+**Example:**
+```bash
+ctxvault list my-vault
+```
 
 ---
 
-## Available endpoints
+#### `delete`
+Remove document from vault.
+```bash
+ctxvault delete <vault> --path <path>
+```
 
-Base path: `/ctxvault`
+**Arguments:**
+- `<vault>` - Vault name (required)
+- `--path <path>` - File path to delete (required)
 
-| Method | Endpoint   | Description       |
-| ------ | ---------- | ----------------- |
-| POST   | `/init`    | initialize vault  |
-| PUT    | `/index`   | index file/folder |
-| POST   | `/query`   | semantic search   |
-| GET    | `/list`    | list indexed docs |
-| DELETE | `/delete`  | delete file       |
-| PUT    | `/reindex` | reindex file      |
-| POST   | `/write`   | write & index file|      |
+**Example:**
+```bash
+ctxvault delete my-vault --path paper.pdf
+```
 
 ---
 
-## Example (curl)
+#### `reindex`
+Re-index documents in vault.
+```bash
+ctxvault reindex <vault> [--path <path>]
+```
 
-### Query
+**Arguments:**
+- `<vault>` - Vault name (required)
+- `--path <path>` - Specific file or directory to re-index (optional, default: entire vault)
 
+**Example:**
+```bash
+ctxvault reindex my-vault
+ctxvault reindex my-vault --path docs/
+```
+
+---
+
+#### `vaults`
+List all vaults and their paths.
+```bash
+ctxvault vaults
+```
+
+**Example:**
+```bash
+ctxvault vaults
+```
+
+---
+
+**Vault management:**
+- Default location: `~/.ctxvault/vaults/<vault-name>/`
+- Vault registry: `~/.ctxvault/config.json` tracks all vault names and their paths
+- Custom paths: Use `--path` flag during `init` to create vault at custom location
+- All other commands use vault name (path lookup via config.json)
+
+**Vault management:**
+- Default location: `~/.ctxvault/vaults/<vault-name>/`
+- Vault registry: `~/.ctxvault/config.json` tracks all vault names and their paths
+- Custom paths: Use `--vault-path` flag during `init` to create vault at custom location
+- All other commands use vault name (path lookup via config.json)
+
+**Multi-vault support:**
+```bash
+# Work with specific vault
+ctxvault --vault research query "topic"
+
+# Default vault location: ~/.ctxvault/vaults/
+# Override with --vault-path for custom locations
+```
+
+---
+
+### API Reference
+
+**Base URL:** `http://127.0.0.1:8000/ctxvault`
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/init` | POST | Initialize vault |
+| `/index` | PUT | Index entire vault or specific path |
+| `/query` | POST | Semantic search |
+| `/write` | POST | Write and index new file |
+| `/docs` | GET | List indexed documents |
+| `/delete` | DELETE | Remove document from vault |
+| `/reindex` | PUT | Re-index entire vault or specific path |
+| `/vaults` | GET | List all the initialized vaults |
+
+**Example: Query**
 ```bash
 curl -X POST http://127.0.0.1:8000/ctxvault/query \
   -H "Content-Type: application/json" \
-  -d '{"query":"what is project Orion?"}'
+  -d '{
+    "vault_name": "research",
+    "query": "transformer architecture",
+    "top_k": 5
+  }'
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "text": "Transformers use self-attention mechanisms...",
+      "source": "attention_paper.pdf",
+      "score": 0.89
+    }
+  ]
+}
+```
+
+**Interactive documentation:** Start the server and visit `http://127.0.0.1:8000/docs`
+
+---
+
+## Use Cases
+
+**Personal Knowledge Management**
+- Research paper collections
+- Study notes and learning progress
+- Documentation and how-to guides
+
+**Enterprise Applications**
+- Internal knowledge bases
+- Team collaboration memory
+- Meeting notes with cross-session recall
+
+**AI Agent Infrastructure**
+- RAG backends for chatbots
+- Multi-agent shared memory
+- Persistent agent context across sessions
+
+**Developer Tools**
+- Codebase semantic search
+- Documentation assistants
+- Debug solution tracking
+
+---
+
+## How It Works
+```
+Documents → Chunking → Embeddings → ChromaDB → Semantic Search
+```
+
+1. **Ingestion:** Documents split into chunks (configurable size)
+2. **Embedding:** Chunks embedded using sentence-transformers
+3. **Storage:** Vectors stored in local ChromaDB
+4. **Retrieval:** Queries embedded and matched via cosine similarity
+5. **Results:** Top-k most relevant chunks returned
+
+**Supported formats:** `.txt`, `.md`, `.pdf`, `.docx`
+
+**Architecture:** ChromaDB (vector store) + FastAPI (server) + Click (CLI)
+
+---
+
+## CtxVault vs Alternatives
+
+| Feature | CtxVault | Pinecone/Weaviate | LangChain VectorStores | Mem0/Zep |
+|---------|----------|-------------------|------------------------|----------|
+| **Local-first** | ✓ | ✗ (cloud) | ✓ | ✗ (cloud APIs) |
+| **Multi-vault** | ✓ | ✗ | ✗ | Partial |
+| **CLI + API** | ✓ | API only | Code only | API only |
+| **Zero config** | ✓ | ✗ (setup required) | ✗ (code integration) | ✗ (external service) |
+| **Agent write support** | ✓ | ✓ | ✗ | ✓ |
+| **Privacy** | 100% local | Cloud | Depends on backend | Cloud |
+
+**When to use CtxVault:**
+- You need local-first semantic search
+- Multiple isolated knowledge contexts
+- Simple setup without external services
+- Integration with LangChain/LangGraph workflows
+
+**When to use alternatives:**
+- Cloud-native architecture required
+- Need advanced features (e.g., hybrid search, reranking)
+- Already invested in specific cloud ecosystem
+
+---
+
+## Roadmap
+
+- [x] CLI MVP
+- [x] FastAPI server
+- [x] Multi-vault support
+- [x] Agent write API
+- [ ] File watcher / auto-sync
+- [ ] Hybrid search (semantic + keyword)
+
+---
+
+## Contributing
+
+Contributions welcome! Please check the [issues](https://github.com/Filippo-Venturini/ctxvault/issues) for open tasks.
+
+**Development setup:**
+```bash
+git clone https://github.com/Filippo-Venturini/ctxvault
+cd ctxvault
+pip install -e ".[dev]"
+pytest
 ```
 
 ---
 
-# CLI vs API – when to use what?
+## Citation
 
-### Use CLI when
-
-* working locally
-* indexing manually
-* debugging
-* scripting
-* personal usage
-
-### Use API when
-
-* integrating with agents
-* LangGraph / LangChain workflows
-* backend services
-* automation pipelines
-* multi-process access
-
-Both share the same core engine.
-
----
-
-# Examples
-
-Real integrations are available in:
-
-```
-examples/
+If you use CtxVault in your research or project, please cite:
+```bibtex
+@software{ctxvault2025,
+  author = {Filippo Venturini},
+  title = {CtxVault: Local Semantic Knowledge Vault for AI Agents},
+  year = {2026},
+  url = {https://github.com/Filippo-Venturini/ctxvault}
+}
 ```
 
-Planned:
+---
 
-* agent integration
-* LangGraph workflow
-* notebook demo
-* API usage scripts
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-# Privacy
+## Acknowledgments
 
-All processing happens locally.
-
-* no cloud
-* no telemetry
-* no external calls
-* your documents never leave your machine
+Built with [ChromaDB](https://www.trychroma.com/), [LangChain](https://www.langchain.com/) and [FastAPI](https://fastapi.tiangolo.com/).
 
 ---
 
-# Roadmap
-
-* [x] CLI MVP
-* [x] FastAPI server
-* [ ] sync / file watcher
-* [ ] multi-vault support
-
----
-
-# License
-
-MIT
-
----
+<div align="center">
+<sub>Made with focus on privacy and developer experience</sub>
+</div>
