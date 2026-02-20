@@ -47,8 +47,7 @@ class ListDocsResponse(BaseModel):
 
 class AgentMetadata(BaseModel):
     generated_by: str
-    artifact_type: str
-    topic: str
+    timestamp: str
 
 class WriteRequest(BaseModel):
     vault_name: str

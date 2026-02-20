@@ -162,8 +162,9 @@ def list_documents(vault_name: str)-> list[DocumentInfo]:
 def list_vaults()-> list[str]:
     return get_vaults()
 
-def write_file(vault_name: str, file_path: Path, content: str, overwrite: bool = True, agent_metadata: dict | None = None)-> None:
+def write_file(vault_name: str, file_path: str, content: str, overwrite: bool = True, agent_metadata: dict | None = None)-> None:
     vault_config = get_vault_config(vault_name)
+    file_path = Path(file_path)
 
     if not file_path.suffix:
         raise FileTypeNotPresentError("File type not present in the file path.")

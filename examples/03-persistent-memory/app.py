@@ -1,13 +1,13 @@
 """
 LangGraph + CtxVault Persistent Memory Demo
 
-Demonstrates agent with persistent memory across sessions using semantic recall.
+Demonstrates agent with long-term memory across sessions using semantic recall.
 
 Scenario:
-- Research assistant accumulates knowledge over multiple sessions
-- Each session: agent researches topic → saves findings to vault
-- Future sessions: agent retrieves relevant past insights before new research
-- Cross-session synthesis: semantic search across entire research history
+- Personal assistant that accumulates context over multiple days
+- Each session: user shares meetings, tasks, thoughts → agent saves to memory
+- Future sessions: agent retrieves relevant context semantically
+- Synthesis: agent identifies patterns across all sessions
 
 Run:
     python app.py
@@ -28,13 +28,14 @@ from langchain_openai import ChatOpenAI
 
 API_URL = "http://127.0.0.1:8000"
 BASE_DIR = Path(__file__).parent
-VAULT_NAME = "research-memory"
+VAULT_NAME = "assistant-memory"
 
 # ANSI colors for CLI
 BLUE = "\033[94m"
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
 CYAN = "\033[96m"
+MAGENTA = "\033[95m"
 RESET = "\033[0m"
 
 # =====================================================================
@@ -69,20 +70,26 @@ def api(method: str, path: str, **kwargs):
     return requests.request(method, f"{API_URL}/ctxvault{path}", timeout=None, **kwargs)
 
 def init_vault():
-    """Initialize empty vault for session memory."""
+    """Initialize empty vault for assistant memory."""
     print(f"{BLUE}[SETUP] Initializing memory vault '{VAULT_NAME}'...{RESET}")
     api("POST", "/init", json={"vault_name": VAULT_NAME, "vault_path": str(BASE_DIR / VAULT_NAME)})
     print(f"{GREEN}[SETUP] Vault initialized{RESET}\n")
 
 def write_to_vault(filename: str, content: str):
-    """Write findings to vault as new session file."""
+    """Write session memory to vault."""
+    
     api("POST", "/write", json={
         "vault_name": VAULT_NAME,
-        "file_name": filename,
-        "content": content
+        "file_path": filename,
+        "content": content,
+        "overwrite": False,
+        "agent_metadata": {
+            "generated_by": "personal_assistant",
+            "timestamp": datetime.now().isoformat()
+        }
     })
 
-def query_vault(query: str, top_k: int = 3):
+def query_vault(query: str, top_k: int = 5):
     """Retrieve from past sessions."""
     res = api("POST", "/query", json={
         "vault_name": VAULT_NAME,
@@ -93,251 +100,209 @@ def query_vault(query: str, top_k: int = 3):
     return res.get("results", [])
 
 # =====================================================================
-# Research Agent
+# LLM
 # =====================================================================
 
-# Simulated research findings (in production, these would come from real research)
-RESEARCH_FINDINGS = {
-    "transformers": """# Transformer Architecture Fundamentals
-
-## Self-Attention Mechanism
-The core innovation is self-attention, which allows the model to weigh the importance of different words in a sequence. Unlike RNNs that process sequentially, transformers can attend to all positions simultaneously.
-
-The attention mechanism computes Query (Q), Key (K), and Value (V) vectors for each input. Attention score: softmax(QK^T / sqrt(d_k)) * V
-
-Each word can "look at" every other word and decide how much to focus on each one.
-
-## Multi-Head Attention
-Multiple attention heads run in parallel, each learning different relationship aspects. One head might focus on syntactic relationships (subject-verb), while another captures semantic similarities.
-
-## Positional Encoding
-Since transformers process all tokens in parallel, they use sinusoidal positional encodings to understand word order:
-PE(pos, 2i) = sin(pos/10000^(2i/d_model))
-
-## Architecture
-- Encoder: 6 layers with multi-head attention + feed-forward networks
-- Decoder: 6 layers with masked self-attention
-- Residual connections and layer normalization throughout
-
-## Training Efficiency
-Highly parallelizable - no sequential dependencies like RNNs. Much faster training on GPUs.
-
-## Key Insight
-Self-attention enables capturing long-range dependencies in a single layer, while RNNs need many stacked layers.""",
-
-    "vision_transformers": """# Vision Transformers (ViT)
-
-## Core Concept
-Applying transformer architecture to images by treating image patches as tokens, similar to words in NLP.
-
-## Patch Embedding Innovation
-Instead of processing pixels, ViT splits images into fixed-size patches (e.g., 16x16). Each patch is flattened and projected to create embeddings.
-
-For 224x224 image with 16x16 patches: 196 patches (14x14 grid). Each becomes a "token".
-
-## Architecture Differences
-- Learnable [CLS] token for classification (like BERT)
-- 2D positional embeddings instead of 1D
-- Encoder-only (no decoder for classification)
-- Pre-trained on large datasets (ImageNet-21k, JFT-300M)
-
-## Performance Insights
-Small datasets: ViT underperforms CNNs (lacks inductive biases)
-Large-scale pre-training: ViT matches or exceeds CNNs with better efficiency
-
-## Connection to Transformers
-Self-attention applies directly - each patch attends to all others. Captures long-range dependencies that CNNs struggle with (e.g., relating opposite image corners in single layer).
-
-## Computational Considerations
-- Attention cost scales quadratically with patches
-- Smaller patches = better performance but higher compute
-- Pre-training dataset size crucial
-
-## Attention Patterns
-Early layers: texture/edges
-Later layers: object parts and whole objects
-Similar to CNN hierarchical learning but emerges naturally from attention.
-
-## Applications
-Image classification, object detection (DETR), semantic segmentation, medical imaging.""",
-
-    "llm_scaling": """# Large Language Models - Scaling Laws and Emergent Abilities
-
-## Scaling Laws (Kaplan et al.)
-Predictable relationship between model size, dataset size, compute, and performance:
-- Performance improves as power law with model size
-- Larger models more sample-efficient
-- Optimal ratio between model/dataset size for given compute
-
-Formula: Loss ∝ N^(-α) where N = parameters, α ≈ 0.076
-Doubling size gives ~5% improvement.
-
-## Emergent Abilities
-Certain abilities only appear at scale - sudden emergence at threshold size:
-
-Examples:
-- Few-shot learning: GPT-3 (175B) learns from prompt examples
-- Chain-of-thought reasoning: only >10B parameters
-- Multi-digit multiplication: only at large scale
-
-Intelligence as phase transition - not gradual but sudden emergence.
-
-## Architecture at Scale
-
-Attention bottleneck: O(n²) complexity
-Solutions: sparse attention, local windows, memory-efficient implementations
-
-Training stability:
-- Gradient clipping, learning rate warmup
-- Layer norm placement (pre-norm vs post-norm)
-- Mixed precision (fp16/bf16) for memory
-
-Parallelism strategies:
-- Data parallelism: batch split across GPUs
-- Model parallelism: layers split
-- Pipeline parallelism: different layers on different GPUs
-- Tensor parallelism: individual layers split
-
-GPT-3 used all four on thousands of GPUs.
-
-## Efficiency vs Performance
-Distilled models (DistilBERT, TinyLlama) capture 95%+ performance at 10% size. Most knowledge compressible, but last few percent requires scale.
-
-## Practical Implications
-- Medium models (1-10B) sufficient for most applications
-- Pre-training expensive, fine-tuning cheap
-- RAG can substitute some scaling benefits
-
-## Universal Pattern
-Transformer architecture (self-attention) is incredibly general - works for text, vision, massive scale. Same mechanism underlies all applications.
-
-Transformers = universal sequence processors for words, image patches, proteins, etc."""
-}
-
-def research_topic(topic: str) -> str:
-    """Simulate agent doing research and generating findings."""
-    return RESEARCH_FINDINGS[topic]
+def get_llm():
+    """Initialize LLM."""
+    return ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 # =====================================================================
-# Session simulations
+# Session 1 - Accumulation
 # =====================================================================
 
 def session_1():
-    """First research session - no prior context."""
+    """Day 1 - User shares multiple context items."""
     print("=" * 70)
-    print(f"{CYAN}SESSION 1 - January 15, 2025{RESET}")
-    print("=" * 70)
-    print()
-    
-    topic = "transformers"
-    print(f"{BLUE}[AGENT] Researching: Transformer architecture fundamentals{RESET}")
-    
-    findings = research_topic(topic)
-    
-    filename = "session_2025-01-15_001.md"
-    print(f"{YELLOW}[VAULT] Writing findings → {filename}{RESET}")
-    write_to_vault(filename, findings)
-    
-    print(f"{GREEN}[AGENT] Session 1 complete. Knowledge saved.{RESET}")
-    print()
-
-def session_2():
-    """Second session - retrieves from session 1 before new research."""
-    print("=" * 70)
-    print(f"{CYAN}SESSION 2 - January 22, 2025{RESET}")
+    print(f"{CYAN}SESSION 1 - Monday, February 17, 2026{RESET}")
     print("=" * 70)
     print()
     
-    # Query vault for relevant past knowledge
-    query = "self-attention mechanism and how it works"
-    print(f"{BLUE}[AGENT] Recalling: {query}{RESET}")
+    print(f"{MAGENTA}[USER] Sharing today's context with assistant...{RESET}\n")
     
-    results = query_vault(query, top_k=2)
-    
-    if results:
-        print(f"{YELLOW}[VAULT] Retrieved from past sessions:{RESET}")
-        for r in results:
-            source = r.get("source", "unknown")
-            snippet = r["text"][:150] + "..."
-            print(f"   {source}")
-            print(f"     {snippet}")
-        print()
-    
-    # New research builds on past knowledge
-    topic = "vision_transformers"
-    print(f"{BLUE}[AGENT] Researching: Vision Transformers (building on previous insights){RESET}")
-    
-    findings = research_topic(topic)
-    
-    filename = "session_2025-01-22_002.md"
-    print(f"{YELLOW}[VAULT] Writing findings → {filename}{RESET}")
-    write_to_vault(filename, findings)
-    
-    print(f"{GREEN}[AGENT] Session 2 complete. Knowledge accumulated.{RESET}")
-    print()
-
-def session_3():
-    """Third session - synthesizes across all previous sessions."""
-    print("=" * 70)
-    print(f"{CYAN}SESSION 3 - February 3, 2025{RESET}")
-    print("=" * 70)
-    print()
-    
-    # Query for patterns across all research
-    query = "how transformers scale and their efficiency considerations"
-    print(f"{BLUE}[AGENT] Synthesizing: {query}{RESET}")
-    
-    results = query_vault(query, top_k=4)
-    
-    print(f"{YELLOW}[VAULT] Retrieved from multiple sessions:{RESET}")
-    sources = set()
-    for r in results:
-        source = r.get("source", "unknown")
-        sources.add(source)
-        snippet = r["text"][:120] + "..."
-        print(f"  📄 {source}")
-        print(f"     {snippet}")
-    print()
-    
-    print(f"{GREEN}[AGENT] Found insights across {len(sources)} previous sessions{RESET}")
-    print()
-    
-    # New research on scaling
-    topic = "llm_scaling"
-    print(f"{BLUE}[AGENT] Researching: LLM scaling laws (connecting to previous findings){RESET}")
-    
-    findings = research_topic(topic)
-    
-    filename = "session_2025-02-03_003.md"
-    print(f"{YELLOW}[VAULT] Writing findings → {filename}{RESET}")
-    write_to_vault(filename, findings)
-    
-    print(f"{GREEN}[AGENT] Session 3 complete. Cross-session synthesis saved.{RESET}")
-    print()
-
-def final_synthesis():
-    """Demonstrate cross-session semantic search."""
-    print("=" * 70)
-    print(f"{CYAN}FINAL SYNTHESIS - Querying Entire Research History{RESET}")
-    print("=" * 70)
-    print()
-    
-    queries = [
-        "What are the key architectural innovations I've learned about?",
-        "How do attention mechanisms work across different domains?",
-        "What efficiency challenges appear across my research?"
+    # Simulate multiple user inputs throughout the day
+    interactions = [
+        {
+            "time": "09:30",
+            "text": "Meeting with Sarah at 2pm today about Q2 budget review. She wants to discuss cost optimization strategies."
+        },
+        {
+            "time": "11:15",
+            "text": "Need to cut cloud infrastructure costs by 15% this quarter. Focus on unused resources and reserved instances."
+        },
+        {
+            "time": "14:45",
+            "text": "Sarah mentioned competitors are pricing 20% lower. We need to analyze if we can match without sacrificing quality."
+        },
+        {
+            "time": "16:20",
+            "text": "Action item: prepare cost analysis slides by Friday. Include comparison with competitors and savings projections."
+        },
+        {
+            "time": "17:00",
+            "text": "John from procurement mentioned we might have leverage to renegotiate vendor contracts. Follow up next week."
+        }
     ]
     
+    # Format as conversation log
+    log_entries = []
+    for interaction in interactions:
+        print(f"{YELLOW}[{interaction['time']}]{RESET} {interaction['text']}")
+        log_entries.append(f"[{interaction['time']}] {interaction['text']}")
+        time.sleep(0.3)  # Simulate time passing
+    
+    print()
+    
+    # Save entire day's context to vault
+    filename = "session_2026-02-17_001.md"
+    content = "# Session - Monday, February 17, 2026\n\n" + "\n\n".join(log_entries)
+    
+    print(f"{BLUE}[ASSISTANT] Saving today's context to memory...{RESET}")
+    write_to_vault(filename, content)
+    
+    print(f"{GREEN}[VAULT]  Saved {len(interactions)} interactions → {filename}{RESET}")
+    print(f"{GREEN}[ASSISTANT] I'll remember this for our future conversations.{RESET}")
+    print()
+
+# =====================================================================
+# Session 2 - Semantic Recall
+# =====================================================================
+
+def session_2():
+    """Day 3 - User asks questions about past context."""
+    print("=" * 70)
+    print(f"{CYAN}SESSION 2 - Wednesday, February 19, 2026{RESET}")
+    print("=" * 70)
+    print()
+    
+    print(f"{MAGENTA}[USER] Asking assistant to recall past context...{RESET}\n")
+    
+    queries = [
+        "What financial constraints did I mention?",
+        "Did I discuss anything about competitors?",
+        "Were there any action items I need to complete?"
+    ]
+    
+    llm = get_llm()
+    
     for query in queries:
-        print(f"{BLUE}[QUERY] {query}{RESET}")
+        print(f"{YELLOW}[QUERY] {query}{RESET}")
+        print(f"{BLUE}[ASSISTANT] Searching memory...{RESET}")
         
+        # Semantic search in vault
         results = query_vault(query, top_k=3)
         
-        print(f"{YELLOW}[VAULT] Relevant insights from:{RESET}")
-        for r in results:
-            source = r.get("source", "unknown")
-            print(f"   {source}")
+        if results:
+            print(f"{GREEN}[VAULT]   Found relevant context:{RESET}")
+            
+            context_texts = []
+            for r in results:
+                source = r.get("source", "unknown")
+                snippet = r["text"][:200]
+                print(f"     {source}")
+                print(f"     {snippet}...")
+                context_texts.append(r["text"])
+            
+            # LLM synthesizes answer from retrieved context
+            prompt = ChatPromptTemplate.from_template(
+                """ Based on the user's past notes:
+
+                    {context}
+
+                    Answer this question: {question}
+
+                    Provide a concise answer referencing the specific details from the notes."""
+            )
+            
+            chain = prompt | llm
+            answer = chain.invoke({
+                "context": "\n\n".join(context_texts),
+                "question": query
+            })
+            
+            print()
+            print(f"{GREEN}[ASSISTANT] {answer.content}{RESET}")
+        else:
+            print(f"{YELLOW}[ASSISTANT] No relevant context found in memory.{RESET}")
+        
         print()
+
+# =====================================================================
+# Session 3 - Cross-Session Synthesis
+# =====================================================================
+
+def session_3():
+    """Day 7 - User asks for synthesis across all sessions."""
+    print("=" * 70)
+    print(f"{CYAN}SESSION 3 - Monday, February 24, 2026{RESET}")
+    print("=" * 70)
+    print()
+    
+    # First, add more context from this week
+    print(f"{MAGENTA}[USER] Quick update before synthesis...{RESET}\n")
+    
+    new_interactions = [
+        {
+            "time": "10:00",
+            "text": "Completed cost analysis. Found we can save 18% by optimizing cloud resources and switching vendors."
+        },
+        {
+            "time": "14:30",
+            "text": "Sarah approved the proposal. Moving forward with implementation next month."
+        }
+    ]
+    
+    log_entries = []
+    for interaction in new_interactions:
+        print(f"{YELLOW}[{interaction['time']}]{RESET} {interaction['text']}")
+        log_entries.append(f"[{interaction['time']}] {interaction['text']}")
+        time.sleep(0.3)
+    
+    print()
+    
+    filename = "session_2026-02-24_002.md"
+    content = "# Session - Monday, February 24, 2026\n\n" + "\n\n".join(log_entries)
+    
+    print(f"{BLUE}[ASSISTANT] Saving new context...{RESET}")
+    write_to_vault(filename, content)
+    print(f"{GREEN}[VAULT] Saved {len(new_interactions)} interactions → {filename}{RESET}")
+    print()
+    
+    # Now synthesize across all sessions
+    print(f"{MAGENTA}[USER] Can you summarize the key themes from the past week?{RESET}\n")
+    print(f"{BLUE}[ASSISTANT] Analyzing all conversations from the past week...{RESET}")
+    
+    # Retrieve broadly across all sessions
+    results = query_vault("main themes and outcomes from all conversations", top_k=10)
+    
+    print(f"{GREEN}[VAULT] Retrieved {len(results)} relevant pieces from memory{RESET}")
+    print(f"{YELLOW}[VAULT] Sources: {', '.join(set([r.get('source', '?') for r in results]))}{RESET}")
+    print()
+    
+    # LLM synthesizes patterns
+    llm = get_llm()
+    
+    all_context = "\n\n".join([r["text"] for r in results])
+    
+    prompt = ChatPromptTemplate.from_template(
+        """Analyze these notes from the user's past week:
+
+{context}
+
+Identify and summarize:
+1. The 3 main themes that emerged
+2. Key decisions made
+3. Current status and next steps
+
+Be specific and reference concrete details from the notes."""
+    )
+    
+    chain = prompt | llm
+    synthesis = chain.invoke({"context": all_context})
+    
+    print(f"{GREEN}[ASSISTANT] Weekly Synthesis:{RESET}\n")
+    print(f"{synthesis.content}")
+    print()
 
 # =====================================================================
 # Main
@@ -345,15 +310,16 @@ def final_synthesis():
 
 def main():
     if not os.getenv("OPENAI_API_KEY"):
-        print(f"{YELLOW}Note: OPENAI_API_KEY not set{RESET}")
-        print(f"{YELLOW}This demo uses simulated research findings (no LLM needed){RESET}\n")
+        print(f"{YELLOW}ERROR: OPENAI_API_KEY environment variable not set{RESET}")
+        print(f"{YELLOW}Please set it with: export OPENAI_API_KEY=your_key{RESET}")
+        return
     
     print("=" * 70)
-    print("Persistent Memory Agent Demo")
+    print("Personal Assistant with Persistent Memory Demo")
     print("=" * 70)
     print()
-    print("Simulating research assistant across multiple sessions...")
-    print("Each session accumulates knowledge that persists over time.")
+    print("This demo simulates a personal assistant that remembers context")
+    print("across multiple days using semantic memory.")
     print()
     
     server = start_server()
@@ -361,25 +327,16 @@ def main():
     try:
         init_vault()
         
-        # Simulate three research sessions over time
         session_1()
-        time.sleep(1)  # Simulate time passing
+        time.sleep(1)
         
         session_2()
         time.sleep(1)
         
         session_3()
-        time.sleep(1)
-        
-        # Demonstrate semantic search across all sessions
-        final_synthesis()
         
         print("=" * 70)
         print(f"{GREEN}Demo complete!{RESET}")
-        print()
-        print(f"Check vault contents: {VAULT_NAME}/")
-        print(f"Three session files created with accumulated knowledge.")
-        print()
     
     finally:
         server.terminate()

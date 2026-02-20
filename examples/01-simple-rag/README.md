@@ -183,4 +183,6 @@ Perfect for:
 
 ---
 
-**Want more?** See example 02 (multi-agent with isolated vaults) for advanced architectures.
+**Want more?** 
+- Example 02 (multi-agent isolation) for privacy-aware architectures
+- Example 03 (persistent memory) for long-term semantic memory that persists across sessions

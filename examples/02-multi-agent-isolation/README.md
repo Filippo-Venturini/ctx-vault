@@ -103,3 +103,7 @@ Perfect for:
 ---
 
 **Total code:** ~200 lines for complete multi-agent system with semantic isolation.
+
+**Want more?** Check out:
+- Example 01 (simple RAG) for basic retrieval
+- Example 03 (persistent memory) for long-term semantic memory that persists across sessions
