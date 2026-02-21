@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ctxvault"
-version = "0.1.4"
+version = "0.2.0"
 description = "CtxVault is a local-first knowledge vault that indexes your documents, generates embeddings, and enables fast semantic search via CLI or API. Designed for personal knowledge bases, RAG pipelines, and AI agents."
 readme = "README.md"
 requires-python = ">=3.9"

@@ -1,8 +1,8 @@
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo_white_text.svg" width="400" height="100">
-  <source media="(prefers-color-scheme: light)" srcset="assets/logo_black_text.svg" width="400" height="100">
-  <img alt="Logo" src="assets/logo_white.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/logo_white_text.svg" width="400" height="100">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/logo_black_text.svg" width="400" height="100">
+    <img alt="Logo" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/logo_black_text.svg" width="400" height="100">
 </picture>
 
 <h3>Semantic knowledge vault for AI agents and RAG pipelines</h3>
