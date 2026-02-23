@@ -21,31 +21,22 @@
 
 ## What is CtxVault?
 
-CtxVault is a **local semantic search engine** for LLM applications. Index documents, generate embeddings, and query with semantic search — all running on your machine.
+CtxVault is a **local semantic memory layer** for LLM applications. Index documents, let agents write context, and query everything semantically — all running on your machine, with zero cloud dependencies.
 
-**Built for:**
-- **Personal RAG** - private knowledge bases with semantic search
-- **Multi-agent systems** - shared or isolated memory layers  
-- **Persistent memory** - agent memory that survives across sessions
-- **Privacy-first workflows** - your data never leaves your machine
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/architectural_schema_dark.png">
+    <img alt="CtxVault Architecture" src="assets/architectural_schema.png" width="350">
+  </picture>
+</div>
 
-Works as both a CLI tool and API server. Zero cloud dependencies.
+**100% Local** — No API keys, no cloud services, no telemetry. Your data never leaves your machine.
 
----
+**Multi-Vault Architecture** — Run isolated vaults for different contexts. Separate personal notes from company docs, or give each agent its own knowledge domain.
 
-## Why CtxVault?
+**Agent-Ready** — Built-in FastAPI server for seamless integration with LangChain, LangGraph, and custom agent workflows. Write and query memory programmatically.
 
-**100% Local**  
-No API keys, no cloud services, no telemetry. Runs entirely offline with your own compute.
-
-**Multi-Vault Architecture**  
-Run isolated vaults for different contexts. Separate personal notes from company docs, or give each agent its own knowledge domain.
-
-**Agent-Ready**  
-Built-in FastAPI server for seamless integration with LangChain, LangGraph, and custom agent workflows. Write and query memory programmatically.
-
-**Developer-First**  
-Simple CLI for manual work. HTTP API for automation. Works offline. No configuration overhead.
+**Developer-First** — Simple CLI for manual use. HTTP API for programmatic integration. No configuration overhead.
 
 ---
 
@@ -95,28 +86,80 @@ ctxvault list my-vault
 ctxvault vaults
 ```
 
-### API Usage
+### Agent Integration
 
-Start the server:
+Give your agent **persistent semantic memory** in minutes. Start the server:
 ```bash
 uvicorn ctxvault.api.app:app
 ```
+Then write, store, and recall context across sessions:
+```python
+import requests
+from langchain_openai import ChatOpenAI
 
-Then interact programmatically — see the full API workflow in [API Reference](#api-reference) or explore the interactive docs at `http://127.0.0.1:8000/docs`.
+API = "http://127.0.0.1:8000/ctxvault"
+
+# 1. Create a vault
+requests.post(f"{API}/init", json={"vault_name": "agent-memory"})
+
+# 2. Agent writes what it learns to memory
+requests.post(f"{API}/write", json={
+    "vault_name": "agent-memory",
+    "filename": "session_monday.md",
+    "content": "Discussed Q2 budget: need to cut cloud costs by 15%. "
+               "Competitor pricing is 20% lower than ours."
+})
+
+# 3. Days later — query with completely different words
+results = requests.post(f"{API}/query", json={
+    "vault_name": "agent-memory",
+    "query": "financial constraints from last week",  # ← never mentioned in the doc
+    "top_k": 3
+}).json()["results"]
+
+# 4. Ground your LLM in retrieved memory
+context = "\n".join(r["text"] for r in results)
+answer = ChatOpenAI().invoke(f"Context:\n{context}\n\nQ: What are our cost targets?")
+print(answer.content)
+# → "You mentioned a 15% cloud cost reduction target, with competitor pricing 20% lower."
+```
+> **Any LLM works** — swap `ChatOpenAI` for Ollama, Anthropic, or any provider.
+> Ready to go further? See the [examples](#examples) for full RAG pipelines and multi-agent architectures — or browse the [API Reference](#api-reference) and the interactive docs at `http://127.0.0.1:8000/docs`.
 
 ---
 
 ## Examples
 
-Production-ready examples in [`/examples`](examples/):
+Three production-ready scenarios — each with full code and setup instructions.
 
-**[01-simple-rag](examples/01-simple-rag/README.md)** - Personal research assistant with semantic search over multi-format documents (PDF, MD, TXT, DOCX)
+| | Example | What it shows |
+|--|---------|---------------|
+| 🟢 | [**01 · Personal Research Assistant**](examples/01-simple-rag/) | Semantic RAG over PDF, MD, TXT, DOCX. Ask questions, get cited answers. ~100 lines. |
+| 🔴 | [**02 · Multi-Agent Isolation**](examples/02-multi-agent-isolation/) | Two agents, two vaults, one router. The public agent *cannot* access internal docs — privacy enforced at the knowledge layer. ~200 lines. |
+| 🔵 | [**03 · Persistent Memory Agent**](examples/03-persistent-memory/) | Agent that recalls context across sessions with fuzzy semantic queries. "financial constraints" finds "cost cuts" from 3 days ago. |
 
-**[02-multi-agent-isolation](examples/02-multi-agent-isolation/README.md)** - Privacy-aware multi-agent system with isolated knowledge vaults per agent
+---
 
-**[03-persistent-memory](examples/03-persistent-memory/README.md)** - Agent with long-term memory that persists and recalls semantically across sessions
+## CtxVault vs Alternatives
 
-Each example includes setup instructions, code, and detailed README.
+| Feature | CtxVault | Pinecone/Weaviate | LangChain VectorStores | Mem0/Zep |
+|---------|----------|-------------------|------------------------|----------|
+| **Local-first** | ✓ | ✗ (cloud) | ✓ | ✗ (cloud APIs) |
+| **Multi-vault** | ✓ | ✗ | ✗ | Partial |
+| **CLI + API** | ✓ | API only | Code only | API only |
+| **Zero config** | ✓ | ✗ (setup required) | ✗ (code integration) | ✗ (external service) |
+| **Agent write support** | ✓ | ✓ | ✗ | ✓ |
+| **Privacy** | 100% local | Cloud | Depends on backend | Cloud |
+
+**When to use CtxVault:**
+- You need local-first semantic search
+- Multiple isolated knowledge contexts
+- Simple setup without external services
+- Integration with LangChain/LangGraph workflows
+
+**When to use alternatives:**
+- Cloud-native architecture required
+- Already invested in specific cloud ecosystem
 
 ---
 
@@ -281,71 +324,6 @@ ctxvault research query "topic"
 
 ---
 
-## Use Cases
-
-**Personal Knowledge Management**
-- Research paper collections
-- Study notes and learning progress
-- Documentation and how-to guides
-
-**Enterprise Applications**
-- Internal knowledge bases
-- Team collaboration memory
-- Meeting notes with cross-session recall
-
-**AI Agent Infrastructure**
-- RAG backends for chatbots
-- Multi-agent shared memory
-- Persistent agent context across sessions
-
-**Developer Tools**
-- Codebase semantic search
-- Documentation assistants
-- Debug solution tracking
-
----
-
-## How It Works
-```
-Documents → Chunking → Embeddings → ChromaDB → Semantic Search
-```
-
-1. **Ingestion:** Documents split into chunks (configurable size)
-2. **Embedding:** Chunks embedded using sentence-transformers
-3. **Storage:** Vectors stored in local ChromaDB
-4. **Retrieval:** Queries embedded and matched via cosine similarity
-5. **Results:** Top-k most relevant chunks returned
-
-**Supported formats:** `.txt`, `.md`, `.pdf`, `.docx`
-
-**Architecture:** ChromaDB (vector store) + FastAPI (server) + Click (CLI)
-
----
-
-## CtxVault vs Alternatives
-
-| Feature | CtxVault | Pinecone/Weaviate | LangChain VectorStores | Mem0/Zep |
-|---------|----------|-------------------|------------------------|----------|
-| **Local-first** | ✓ | ✗ (cloud) | ✓ | ✗ (cloud APIs) |
-| **Multi-vault** | ✓ | ✗ | ✗ | Partial |
-| **CLI + API** | ✓ | API only | Code only | API only |
-| **Zero config** | ✓ | ✗ (setup required) | ✗ (code integration) | ✗ (external service) |
-| **Agent write support** | ✓ | ✓ | ✗ | ✓ |
-| **Privacy** | 100% local | Cloud | Depends on backend | Cloud |
-
-**When to use CtxVault:**
-- You need local-first semantic search
-- Multiple isolated knowledge contexts
-- Simple setup without external services
-- Integration with LangChain/LangGraph workflows
-
-**When to use alternatives:**
-- Cloud-native architecture required
-- Need advanced features (e.g., hybrid search, reranking)
-- Already invested in specific cloud ecosystem
-
----
-
 ## Roadmap
 
 - [x] CLI MVP
@@ -354,6 +332,8 @@ Documents → Chunking → Embeddings → ChromaDB → Semantic Search
 - [x] Agent write API
 - [ ] File watcher / auto-sync
 - [ ] Hybrid search (semantic + keyword)
+- [ ] MCP server support
+- [ ] Configurable embedding models
 
 ---
 
@@ -399,5 +379,5 @@ Built with [ChromaDB](https://www.trychroma.com/), [LangChain](https://www.langc
 ---
 
 <div align="center">
-<sub>Made with focus on privacy and developer experience</sub>
+<sub>Made by <a href="https://github.com/Filippo-Venturini">Filippo Venturini</a> · <a href="https://github.com/Filippo-Venturini/ctxvault/issues">Report an issue</a> · ⭐ Star if useful</sub>
 </div>
