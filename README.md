@@ -24,10 +24,7 @@
 CtxVault is a **local semantic memory layer** for LLM applications. Index documents, let agents write context, and query everything semantically — all running on your machine, with zero cloud dependencies.
 
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/architectural_schema_dark.png">
-    <img alt="CtxVault Architecture" src="assets/architectural_schema.png" width="350">
-  </picture>
+  <img alt="CtxVault Architecture" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/architectural_schema.png" width="350">
 </div>
 
 **100% Local** — No API keys, no cloud services, no telemetry. Your data never leaves your machine.
