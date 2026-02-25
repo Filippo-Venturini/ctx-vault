@@ -7,7 +7,7 @@ name = "ctxvault"
 version = "0.2.0"
 description = "CtxVault is a local-first knowledge vault that indexes your documents, generates embeddings, and enables fast semantic search via CLI or API. Designed for personal knowledge bases, RAG pipelines, and AI agents."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
     {name = "Filippo Venturini", email = "filippoventurini00@gmail.com"}
@@ -74,11 +74,12 @@ dev = [
 
 [project.scripts]
 ctxvault = "ctxvault.cli.app:main"
+ctxvault-mcp = "ctxvault.mcp.server:main"
 
 [project.urls]
-Homepage = "https://github.com/Filippo-Venturini/ctx-vault"
-Repository = "https://github.com/Filippo-Venturini/ctx-vault"
-Issues = "https://github.com/Filippo-Venturini/ctx-vault/issues"
+Homepage = "https://github.com/Filippo-Venturini/ctxvault"
+Repository = "https://github.com/Filippo-Venturini/ctxvault"
+Issues = "https://github.com/Filippo-Venturini/ctxvault/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

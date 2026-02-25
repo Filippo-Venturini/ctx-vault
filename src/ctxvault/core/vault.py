@@ -2,7 +2,7 @@ from pathlib import Path
 from ctxvault.models.documents import DocumentInfo
 from ctxvault.models.query_result import ChunkMatch, QueryResult
 from ctxvault.utils.config import create_vault, get_vault_config, get_vaults
-from ctxvault.core.exceptions import FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, PathOutsideVaultError, UnsupportedFileTypeError
+from ctxvault.core.exceptions import EmptyQueryError, FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, PathOutsideVaultError, UnsupportedFileTypeError
 from ctxvault.utils.text_extraction import SUPPORTED_EXT
 
 def _get_base_path(path: str, vault_path: Path)-> Path:
@@ -71,6 +71,9 @@ def index_file(file_path:Path, vault_config: dict, agent_metadata: dict | None =
 
 def query(text: str, vault_name: str, filters: dict | None = None)-> QueryResult:
     from ctxvault.core import querying
+
+    if not text.strip():
+        raise EmptyQueryError("Query text cannot be empty.")
 
     vault_config = get_vault_config(vault_name)
 

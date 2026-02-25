@@ -40,15 +40,14 @@ async def index(index_request: IndexRequest):
 )
 async def query(query_request: QueryRequest)-> QueryResponse:
     try:
-        if not query_request.query.strip():
-            raise HTTPException(status_code=400, detail="Empty query.")
-
         result = vault.query(vault_name=query_request.vault_name,text=query_request.query, filters=query_request.filters)
 
         if not result.results:
             raise HTTPException(status_code=404, detail="No results found.")
 
         return QueryResponse(results=result.results)
+    except EmptyQueryError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except VaultNotFoundError as e:
         raise HTTPException(status_code=400, detail=f"Vault {query_request.vault_name} doesn't exist.")
 
