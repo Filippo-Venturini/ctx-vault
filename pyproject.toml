@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ctxvault"
-version = "0.2.0"
+version = "0.3.0"
 description = "Local semantic memory infrastructure for AI agents. Index documents, let agents write and query knowledge autonomously via MCP, HTTP API, or CLI. Multi-vault architecture, zero cloud dependencies."
 readme = "README.md"
 requires-python = ">=3.10"
