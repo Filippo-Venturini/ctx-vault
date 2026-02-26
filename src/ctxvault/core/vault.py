@@ -14,6 +14,18 @@ def _get_base_path(path: str, vault_path: Path)-> Path:
             raise PathOutsideVaultError(f"The path must be inside the Context Vault.")
     return base_path
 
+def warmup() -> None:
+    """
+    Pre-initializes heavy components (ChromaDB, embedding model) so that
+    the first tool call in long-running server contexts (MCP, FastAPI) is
+    not penalized by lazy initialization costs.
+    """
+    from ctxvault.core import querying, indexer
+    from ctxvault.core.embedding import embed_list
+    from ctxvault.storage import chroma_store
+
+    embed_list(chunks=["warmup"])
+
 def init_vault(vault_name: str, path: str | None = None)-> tuple[str, str]:
 
     #TODO: check if a vault already exist in this path

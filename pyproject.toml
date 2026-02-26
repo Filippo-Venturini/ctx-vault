@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ctxvault"
 version = "0.2.0"
-description = "CtxVault is a local-first knowledge vault that indexes your documents, generates embeddings, and enables fast semantic search via CLI or API. Designed for personal knowledge bases, RAG pipelines, and AI agents."
+description = "Local semantic memory infrastructure for AI agents. Index documents, let agents write and query knowledge autonomously via MCP, HTTP API, or CLI. Multi-vault architecture, zero cloud dependencies."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -26,7 +26,13 @@ keywords = [
     "local-ai",
     "developer-tools",
     "cli",
-    "fastapi"
+    "fastapi",
+    "mcp",
+    "model-context-protocol",
+    "agent-memory",
+    "persistent-memory",
+    "claude",
+    "multi-agent"
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -57,7 +63,8 @@ dependencies = [
     "pypdf>=6.0.0",
     "python-docx>=1.0.0",
     "markdown>=3.0.0",
-    "strip-tags>=0.5.0"
+    "strip-tags>=0.5.0",
+    "mcp>=1.26.0"
 ]
 
 [project.optional-dependencies]

@@ -207,3 +207,5 @@ TODO_API.md
 chroma/
 
 assistant-memory/
+
+uv.lock

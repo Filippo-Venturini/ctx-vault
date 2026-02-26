@@ -1,11 +1,22 @@
 from ctxvault.api.schemas import *
 from ctxvault.core import vault
 from ctxvault.core.exceptions import *
-from ctxvault.models.documents import DocumentInfo
 from mcp.server.fastmcp import FastMCP
 from datetime import datetime, timezone
+from contextlib import asynccontextmanager
+import logging
 
-mcp = FastMCP("ctxvault")
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(server):
+    logger.info("ctxvault MCP server starting — warming up...")
+    vault.warmup()
+    logger.info("Warm-up complete.")
+    yield
+
+mcp = FastMCP("ctxvault", lifespan=lifespan)
 
 @mcp.tool(description="Search for relevant information in a CtxVault vault using semantic similarity. Use this when the user asks a question that might be answered by their personal knowledge base or documents. Returns the most relevant text chunks with their source files.")
 def query(vault_name: str, query: str) -> QueryResponse:
@@ -43,8 +54,9 @@ def list_vaults()-> ListVaultsResponse:
     return ListVaultsResponse(vaults=vaults)
 
 @mcp.tool(description="List all indexed documents inside a specific vault. Use this to understand what knowledge is available before performing a search.")
-def list_docs(vault_name: str)-> ListDocsResponse:
-    try:
+
+def list_docs(vault_name: str) -> ListDocsResponse:
+    try:        
         documents = vault.list_documents(vault_name=vault_name)
         return ListDocsResponse(vault_name=vault_name, documents=documents)
     except VaultNotFoundError as e:
