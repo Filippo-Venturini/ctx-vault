@@ -32,10 +32,6 @@ Each vault is self-contained: its own documents, its own vector index, its own h
   <p><sub>Persistent memory across sessions — shown with Claude Desktop, works with any MCP-compatible client.</sub></p>
 </div>
 
-<div align="center">
-  <img alt="CtxVault Architecture" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/architectural_schema.png" width="350">
-</div>
-
 **100% Local** — No API keys, no cloud services. Your data never leaves your machine.
 
 **Multi-Vault Architecture** — Isolated memory slots for different contexts. One per agent, shared across a team, or split by domain — your call.
@@ -43,6 +39,11 @@ Each vault is self-contained: its own documents, its own vector index, its own h
 **Three Integration Modes** — **CLI** for manual use and monitoring. **HTTP API** for programmatic integration with LangChain, LangGraph, and custom pipelines. **MCP** server for agents that manage their own memory autonomously, with no code required.
 
 **Always Observable** — Agents write and query autonomously via MCP or API, while you retain full visibility and control through the CLI.
+
+<div align="center">
+  <img alt="Multiple agents and applications sharing isolated vaults through a single local layer" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/architectural_schema.png" width="350">
+</div>
+<p align="center"><sub>One layer. Multiple agents, apps, and vaults.</sub></p>
 
 ---
 
