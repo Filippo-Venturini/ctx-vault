@@ -42,7 +42,8 @@ def mock_chroma(monkeypatch):
         "ctxvault.storage.chroma_store.PersistentClient",
         lambda path: mock_client,
     )
-    monkeypatch.setattr("ctxvault.storage.chroma_store._collection", None)
+    monkeypatch.setattr("ctxvault.storage.chroma_store._clients", None)
+    monkeypatch.setattr("ctxvault.storage.chroma_store._connections", None)
 
 @pytest.fixture
 def mock_global_config(tmp_path, monkeypatch):
