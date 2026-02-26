@@ -5,8 +5,8 @@
     <img alt="Logo" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/logo_black_text.svg" width="400" height="100">
 </picture>
 
-<h3>Semantic knowledge vault for AI agents and RAG pipelines</h3>
-<p><i>Local-first semantic memory you control. No cloud, no complexity.</i></p>
+<h3>Local semantic memory infrastructure for AI agents</h3>
+<p><i>Isolated vaults. Agent-autonomous. Human-observable.</i></p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://img.shields.io/pypi/v/ctxvault.svg)](https://pypi.org/project/ctxvault/)
@@ -17,23 +17,33 @@
 
 </div>
 
----
-
 ## What is CtxVault?
 
-CtxVault is a **local semantic memory layer** for LLM applications. Index documents, let agents write context, and query everything semantically — all running on your machine, with zero cloud dependencies.
+CtxVault is a **local semantic memory layer** for LLM applications. It gives agents persistent, queryable knowledge through isolated **vaults** — independent memory slots that can be assigned per agent, shared across workflows, written autonomously, and monitored manually at any time.
+
+Each vault is self-contained: its own documents, its own vector index, its own history. Run as many as you need — one per agent, one per project, or one shared knowledge base across multiple workflows.
 
 <div align="center">
-  <img alt="CtxVault Architecture" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/architectural_schema.png" width="350">
+  <img 
+    src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/ctxvault-demo.gif" 
+    alt="Claude Desktop using ctxvault MCP server — agent saves and recalls context across sessions"
+    width="700"
+  >
+  <p><sub>Persistent memory across sessions — shown with Claude Desktop, works with any MCP-compatible client.</sub></p>
 </div>
 
-**100% Local** — No API keys, no cloud services, no telemetry. Your data never leaves your machine.
+**100% Local** — No API keys, no cloud services. Your data never leaves your machine.
 
-**Multi-Vault Architecture** — Run isolated vaults for different contexts. Separate personal notes from company docs, or give each agent its own knowledge domain.
+**Multi-Vault Architecture** — Isolated memory slots for different contexts. One per agent, shared across a team, or split by domain — your call.
 
-**Agent-Ready** — Built-in FastAPI server for seamless integration with LangChain, LangGraph, and custom agent workflows. Write and query memory programmatically.
+**Three Integration Modes** — **CLI** for manual use and monitoring. **HTTP API** for programmatic integration with LangChain, LangGraph, and custom pipelines. **MCP** server for agents that manage their own memory autonomously, with no code required.
 
-**Developer-First** — Simple CLI for manual use. HTTP API for programmatic integration. No configuration overhead.
+**Always Observable** — Agents write and query autonomously via MCP or API, while you retain full visibility and control through the CLI.
+
+<div align="center">
+  <img alt="Multiple agents and applications sharing isolated vaults through a single local layer" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/architectural_schema.png" width="350">
+</div>
+<p align="center"><sub>One layer. Multiple agents, apps, and vaults.</sub></p>
 
 ---
 
@@ -122,6 +132,30 @@ print(answer.content)
 ```
 > **Any LLM works** — swap `ChatOpenAI` for Ollama, Anthropic, or any provider.
 > Ready to go further? See the [examples](#examples) for full RAG pipelines and multi-agent architectures — or browse the [API Reference](#api-reference) and the interactive docs at `http://127.0.0.1:8000/docs`.
+
+---
+
+### MCP Integration (Claude Desktop, Cursor, and any MCP-compatible client)
+
+Give any MCP-compatible AI client direct access to your vaults — no code required. The agent handles `list_vaults`, `query`, `write`, and `list_docs` autonomously.
+
+**Install:**
+```bash
+uv tool install ctxvault
+```
+
+**Add to your `mcp.json`** (Claude Desktop: `%APPDATA%\Claude\claude_desktop_config.json` — macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "ctxvault": {
+      "command": "ctxvault-mcp"
+    }
+  }
+}
+```
+
+Restart your client. The agent can now query your existing vaults, write new context, and list available knowledge — all locally, all under your control.
 
 ---
 
@@ -327,9 +361,9 @@ ctxvault research query "topic"
 - [x] FastAPI server
 - [x] Multi-vault support
 - [x] Agent write API
+- [x] MCP server support
 - [ ] File watcher / auto-sync
 - [ ] Hybrid search (semantic + keyword)
-- [ ] MCP server support
 - [ ] Configurable embedding models
 
 ---

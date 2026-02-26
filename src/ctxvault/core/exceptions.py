@@ -35,3 +35,7 @@ class PathOutsideVaultError(Exception):
 class FileAlreadyExistError(Exception):
     """Raised when try to write a file that already exist in the Context Vault without the overwrite flag."""
     pass
+
+class EmptyQueryError(Exception):
+    """Raised when trying to query a vault with an empty query."""
+    pass

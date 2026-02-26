@@ -11,7 +11,7 @@ def mock_chroma(monkeypatch):
     )
 
     mock_collection = MagicMock()
-    mock_collection.add = MagicMock()
+    mock_collection.upsert = MagicMock()
     mock_collection.delete = MagicMock()
     mock_collection.query = MagicMock(
         return_value={
@@ -40,9 +40,10 @@ def mock_chroma(monkeypatch):
 
     monkeypatch.setattr(
         "ctxvault.storage.chroma_store.PersistentClient",
-        lambda path: mock_client,
+        lambda path, settings=None: mock_client,
     )
-    monkeypatch.setattr("ctxvault.storage.chroma_store._collection", None)
+    monkeypatch.setattr("ctxvault.storage.chroma_store._clients", {})
+    monkeypatch.setattr("ctxvault.storage.chroma_store._collections", {})
 
 @pytest.fixture
 def mock_global_config(tmp_path, monkeypatch):

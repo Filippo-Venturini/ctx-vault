@@ -1,15 +1,20 @@
-from chromadb import PersistentClient
+from chromadb import PersistentClient, Settings
 
-_chroma_client = None
-_collection = None
+_clients: dict[str, PersistentClient] = {}
+_collections: dict[str, object] = {}
+
+def _get_collection(db_path: str):
+    if db_path not in _collections:
+        client = PersistentClient(
+            path=db_path,
+            settings=Settings(anonymized_telemetry=False)
+        )
+        _clients[db_path] = client
+        _collections[db_path] = client.get_or_create_collection("ctxvault")
+    return _collections[db_path]
 
 def get_collection(config: dict):
-    global _chroma_client, _collection
-    if _collection is None:
-        path = config["db_path"]
-        _chroma_client = PersistentClient(path=path)
-        _collection = _chroma_client.get_or_create_collection("ctxvault")
-    return _collection
+    return _get_collection(config["db_path"])
 
 def add_document(ids: list[str], embeddings: list[list[float]], metadatas: list[dict], chunks: list[str], config: dict):
     collection = get_collection(config=config)

@@ -75,7 +75,7 @@ class TestQueryEndpoint:
             json={"vault_name": "test_vault", "query": ""}
         )
         assert response.status_code == 400
-        assert "Empty query" in response.json()["detail"]
+        assert "Query text cannot be empty." in response.json()["detail"]
 
     def test_query_no_results(self, mock_vault_config, monkeypatch):
         from ctxvault.core import vault
