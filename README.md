@@ -17,13 +17,20 @@
 
 </div>
 
-![meteor event GIF](assets/ctxvault-demo-speed.gif)
-
 ## What is CtxVault?
 
 CtxVault is a **local semantic memory layer** for LLM applications. It gives agents persistent, queryable knowledge through isolated **vaults** — independent memory slots that can be assigned per agent, shared across workflows, written autonomously, and monitored manually at any time.
 
 Each vault is self-contained: its own documents, its own vector index, its own history. Run as many as you need — one per agent, one per project, or one shared knowledge base across multiple workflows.
+
+<div align="center">
+  <img 
+    src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/ctxvault-demo.gif" 
+    alt="Claude Desktop using ctxvault MCP server — agent saves and recalls context across sessions"
+    width="700"
+  >
+  <p><sub>Persistent memory across sessions — shown with Claude Desktop, works with any MCP-compatible client.</sub></p>
+</div>
 
 <div align="center">
   <img alt="CtxVault Architecture" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/architectural_schema.png" width="350">
