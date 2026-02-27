@@ -32,7 +32,7 @@ Each vault is self-contained: its own documents, its own vector index, its own h
   <p><sub>Persistent memory across sessions — shown with Claude Desktop, works with any MCP-compatible client.</sub></p>
 </div>
 
-**100% Local** — No API keys, no cloud services. Your data never leaves your machine.
+**Local-first** — No cloud, no telemetry, no external dependencies. Your knowledge base runs entirely on your machine.
 
 **Multi-Vault Architecture** — Isolated memory slots for different contexts. One per agent, shared across a team, or split by domain — your call.
 
