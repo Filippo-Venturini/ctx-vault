@@ -27,7 +27,7 @@ Each vault is self-contained: its own documents, its own vector index, its own h
   <img 
     src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/ctxvault-demo.gif" 
     alt="Claude Desktop using ctxvault MCP server — agent saves and recalls context across sessions"
-    width="700"
+    width="1200"
   >
   <p><sub>Persistent memory across sessions — shown with Claude Desktop, works with any MCP-compatible client.</sub></p>
 </div>
