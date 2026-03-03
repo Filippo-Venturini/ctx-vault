@@ -17,33 +17,112 @@
 
 </div>
 
+---
+
 ## What is CtxVault?
 
-CtxVault is a **local semantic memory layer** for LLM applications. It gives agents persistent, queryable knowledge through isolated **vaults** — independent memory slots that can be assigned per agent, shared across workflows, written autonomously, and monitored manually at any time.
+Most agent frameworks treat memory as an afterthought — a shared vector store queried with metadata filters, where isolation depends entirely on configuration staying correct. It works until it doesn't: multiple agents with different domains, a growing knowledge base, and the wrong document surfaces in the wrong place.
 
-Each vault is self-contained: its own documents, its own vector index, its own history. Run as many as you need — one per agent, one per project, or one shared knowledge base across multiple workflows.
+CtxVault is built around a different primitive. Memory is organized into **vaults** — self-contained, directory-backed units, each with its own documents and its own vector index. Isolation is structural. The topology is defined explicitly: one vault per agent, a shared knowledge base across multiple workflows, or any combination — with access control that determines exactly which agents can reach which vault.
+
+The result is a memory layer that behaves like real infrastructure: composable, observable, persistent and entirely local.
+
+<div align="center">
+  <img alt="Logo" src="./assets/ctxvault_schema.svg">
+</div>
+
+---
+
+## Core Principles
+
+### Persistent memory across sessions
+
+Agents lose all context when a session ends. CtxVault gives them a knowledge base that persists across conversations, queryable by meaning rather than exact match. Context written in one session is retrievable days later using semantically related language.
 
 <div align="center">
   <img 
     src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/ctxvault-demo.gif" 
-    alt="Claude Desktop using ctxvault MCP server — agent saves and recalls context across sessions"
+    alt="Agent saves context in session one — new chat, new session, memory intact"
     width="1200"
   >
   <p><sub>Persistent memory across sessions — shown with Claude Desktop, works with any MCP-compatible client.</sub></p>
 </div>
 
-**Local-first** — No cloud, no telemetry, no external dependencies. Your knowledge base runs entirely on your machine.
+---
 
-**Multi-Vault Architecture** — Isolated memory slots for different contexts. One per agent, shared across a team, or split by domain — your call.
+### Structural isolation and access control
 
-**Three Integration Modes** — **CLI** for manual use and monitoring. **HTTP API** for programmatic integration with LangChain, LangGraph, and custom pipelines. **MCP** server for agents that manage their own memory autonomously, with no code required.
+Isolation enforced through prompt logic or metadata schemas is fragile — it grows harder to reason about as systems scale, and fails silently when it breaks.
 
-**Always Observable** — Agents write and query autonomously via MCP or API, while you retain full visibility and control through the CLI.
+In CtxVault, each vault is an independent index. Agents have no shared retrieval path unless one is explicitly defined. Vaults can be declared restricted, with access granted to specific agents directly through the CLI. The boundary is part of the architecture, not a rule written in a config file that someone might later get wrong.
 
-<div align="center">
-  <img alt="Multiple agents and applications sharing isolated vaults through a single local layer" src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/architectural_schema.png" width="350">
-</div>
-<p align="center"><sub>One layer. Multiple agents, apps, and vaults.</sub></p>
+```bash
+# Initialize a restricted vault and attach only the agent that should reach it
+ctxvault init internal-docs --restricted
+ctxvault attach internal-docs research-agent
+```
+
+---
+
+### Observable and human-controllable
+
+When agents write to memory autonomously, visibility into what they write is not a debugging feature — it is the foundation of a trustworthy system.
+
+Every vault is a plain directory on your machine. You can read it, edit it, and query it directly through the CLI at any point, independent of what any agent is doing. You also contribute to the same memory layer directly: drop documents into a vault, index with one command, and the agent queries that knowledge alongside what it has written on its own.
+
+```bash
+# Inspect what your agent has written in the vault
+ctxvault list my-vault
+
+# Query its knowledge base directly  
+ctxvault query my-vault "what decisions were made last week?"
+
+# Add your own documents and index them
+ctxvault index my-vault
+```
+
+---
+
+### Local-first
+
+No cloud, no telemetry, no external services. Vaults are plain directories on your machine, the storage layer is entirely local. What you connect to that knowledge base is your choice.
+
+---
+
+## Integration Modes
+
+CtxVault exposes the same vault layer through three interfaces. Use whichever fits your context, or combine them freely.
+
+**CLI** — Human-facing. Monitor vaults, inspect agent-written content, add your own documents, query knowledge bases directly.
+
+**HTTP API** — Programmatic integration. Connect LangChain, LangGraph, or any custom pipeline to vaults via REST. Full CRUD, semantic search, and agent write support.
+
+**MCP server** — For autonomous agents. Give any MCP-compatible client direct vault access with no integration code required. The agent handles `list_vaults`, `query`, `write`, and `list_docs` on its own.
+
+---
+
+## CtxVault vs Alternatives
+
+| | CtxVault | Pinecone / Weaviate | LangChain VectorStores | Mem0 / Zep |
+|--|----------|---------------------|------------------------|------------|
+| **Storage** | Local | Cloud | Local or cloud | Cloud |
+| **Vault isolation** | Structural | ✗ | ✗ | Partial |
+| **Access control** | ✓ | ✗ | ✗ | ✗ |
+| **Human CLI observability** | ✓ | ✗ | ✗ | ✗ |
+| **Agent write support** | ✓ | ✓ | ✗ | ✓ |
+| **MCP server** | ✓ | ✗ | ✗ | ✗ |
+
+---
+
+## Examples
+
+Three production-ready scenarios — each with full code and setup instructions.
+
+| | Example | What it shows |
+|--|---------|---------------|
+| 🟢 | [**Personal Research Assistant**](examples/01-simple-rag/) | Semantic RAG over PDF, MD, TXT, DOCX. Ask questions, get cited answers. ~100 lines. |
+| 🔴 | [**Multi-Agent Isolation**](examples/02-multi-agent-isolation/) | Two agents, two vaults, one router. The public agent has no retrieval path to internal documents — isolation enforced at the knowledge layer, not in prompt logic. ~200 lines. |
+| 🔵 | [**Persistent Memory Agent**](examples/03-persistent-memory/) | An agent that recalls context across sessions using semantic queries. "financial constraints" retrieves "cut cloud costs by 15%" written three days prior. |
 
 ---
 
@@ -156,41 +235,6 @@ uv tool install ctxvault
 ```
 
 Restart your client. The agent can now query your existing vaults, write new context, and list available knowledge — all locally, all under your control.
-
----
-
-## Examples
-
-Three production-ready scenarios — each with full code and setup instructions.
-
-| | Example | What it shows |
-|--|---------|---------------|
-| 🟢 | [**01 · Personal Research Assistant**](examples/01-simple-rag/) | Semantic RAG over PDF, MD, TXT, DOCX. Ask questions, get cited answers. ~100 lines. |
-| 🔴 | [**02 · Multi-Agent Isolation**](examples/02-multi-agent-isolation/) | Two agents, two vaults, one router. The public agent *cannot* access internal docs — privacy enforced at the knowledge layer. ~200 lines. |
-| 🔵 | [**03 · Persistent Memory Agent**](examples/03-persistent-memory/) | Agent that recalls context across sessions with fuzzy semantic queries. "financial constraints" finds "cost cuts" from 3 days ago. |
-
----
-
-## CtxVault vs Alternatives
-
-| Feature | CtxVault | Pinecone/Weaviate | LangChain VectorStores | Mem0/Zep |
-|---------|----------|-------------------|------------------------|----------|
-| **Local-first** | ✓ | ✗ (cloud) | ✓ | ✗ (cloud APIs) |
-| **Multi-vault** | ✓ | ✗ | ✗ | Partial |
-| **CLI + API** | ✓ | API only | Code only | API only |
-| **Zero config** | ✓ | ✗ (setup required) | ✗ (code integration) | ✗ (external service) |
-| **Agent write support** | ✓ | ✓ | ✗ | ✓ |
-| **Privacy** | 100% local | Cloud | Depends on backend | Cloud |
-
-**When to use CtxVault:**
-- You need local-first semantic search
-- Multiple isolated knowledge contexts
-- Simple setup without external services
-- Integration with LangChain/LangGraph workflows
-
-**When to use alternatives:**
-- Cloud-native architecture required
-- Already invested in specific cloud ecosystem
 
 ---
 
