@@ -1,7 +1,7 @@
 from pathlib import Path
 from ctxvault.models.documents import DocumentInfo
 from ctxvault.models.query_result import ChunkMatch, QueryResult
-from ctxvault.utils.config import create_vault, get_vault_config, get_vaults
+from ctxvault.utils.config import attach_agent_to_vault, create_vault, detach_agent_from_vault, get_vault_config, get_vaults, is_authorized, make_public as _make_public
 from ctxvault.core.exceptions import EmptyQueryError, FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, PathOutsideVaultError, UnsupportedFileTypeError
 from ctxvault.utils.text_extraction import SUPPORTED_EXT
 
@@ -26,10 +26,22 @@ def warmup() -> None:
 
     embed_list(chunks=["warmup"])
 
-def init_vault(vault_name: str, path: str | None = None)-> tuple[str, str]:
+def is_agent_authorized(vault_name: str, agent_name: str) -> bool:
+    return is_authorized(vault_name=vault_name, agent_name=agent_name)
+
+def attach_agent(vault_name: str, agent_name: str) -> None:
+    attach_agent_to_vault(vault_name=vault_name, agent_name=agent_name)
+
+def detach_agent(vault_name: str, agent_name: str) -> None:
+    detach_agent_from_vault(vault_name=vault_name, agent_name=agent_name)
+
+def make_public(vault_name: str) -> None:
+    _make_public(vault_name=vault_name)
+
+def init_vault(vault_name: str, restricted: bool, path: str | None = None)-> tuple[str, str]:
 
     #TODO: check if a vault already exist in this path
-    vault_path, config_path = create_vault(vault_name=vault_name, vault_path=path)
+    vault_path, config_path = create_vault(vault_name=vault_name, restricted=restricted, vault_path=path)
     return str(vault_path), config_path
 
 def iter_files(path: Path, exclude_dirs: list[Path] | None = None):
@@ -181,7 +193,7 @@ def list_documents(vault_name: str)-> list[DocumentInfo]:
 
     return querying.list_documents(config=vault_config)
 
-def list_vaults()-> list[str]:
+def list_vaults()-> list[dict]:
     return get_vaults()
 
 def write_file(vault_name: str, file_path: str, content: str, overwrite: bool = True, agent_metadata: dict | None = None)-> None:

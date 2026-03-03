@@ -35,6 +35,9 @@ VAULTS_DIR = Path(__file__).parent / "vaults"
 PUBLIC_VAULT = "public"
 INTERNAL_VAULT = "internal"
 
+PUBLIC_AGENT_HEADER = {"X-CtxVault-Agent": "public-agent"}
+INTERNAL_AGENT_HEADER = {"X-CtxVault-Agent": "internal-agent"}
+
 # Colors for CLI
 BLUE = "\033[94m"
 GREEN = "\033[92m"
@@ -70,19 +73,18 @@ def start_server():
 # CtxVault API helpers
 # =====================================================================
 
-def init_vault(vault_name: str):
-    """Initialize a vault."""
-    requests.post(f"{API_URL}/init", json={"vault_name": vault_name, "vault_path": str(VAULTS_DIR / vault_name)})
-
 def index_vault(vault_name: str):
     """Index documents into vault."""
-    requests.put(f"{API_URL}/index", json={
-        "vault_name": vault_name
-    })
+    requests.put(f"{API_URL}/index", 
+        headers=PUBLIC_AGENT_HEADER if vault_name == PUBLIC_VAULT else INTERNAL_AGENT_HEADER,
+        json={"vault_name": vault_name}
+    )
 
 def query_vault(vault_name: str, query: str, top_k: int = 2):
     """Query vault and return results."""
-    response = requests.post(f"{API_URL}/query", json={
+    response = requests.post(f"{API_URL}/query", 
+        headers=PUBLIC_AGENT_HEADER if vault_name == PUBLIC_VAULT else INTERNAL_AGENT_HEADER,
+        json={
         "vault_name": vault_name,
         "query": query,
         "top_k": top_k
@@ -201,12 +203,7 @@ def create_graph():
 # =====================================================================
 
 def setup_vaults():
-    """Initialize and index both vaults."""
-    print(f"{BLUE}[SETUP] Initializing vaults...{RESET}")
-    
-    init_vault(PUBLIC_VAULT)
-    init_vault(INTERNAL_VAULT)
-    
+    """Initialize and index both vaults."""    
     print(f"{BLUE}[SETUP] Indexing public vault...{RESET}")
     index_vault(PUBLIC_VAULT)
     

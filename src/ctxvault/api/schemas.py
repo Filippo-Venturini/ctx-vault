@@ -2,8 +2,15 @@ from ctxvault.models.documents import DocumentInfo
 from ctxvault.models.query_result import ChunkMatch
 from pydantic import BaseModel
 
+class VaultInfo(BaseModel):
+    name: str
+    vault_path: str
+    restricted: bool
+    allowed_agents: list[str] | None = None
+
 class InitRequest(BaseModel):
     vault_name: str
+    restricted: bool = False
     vault_path: str | None = None
 
 class InitResponse(BaseModel):
@@ -39,7 +46,7 @@ class ReindexResponse(BaseModel):
     skipped_files: list[str]
 
 class ListVaultsResponse(BaseModel):
-    vaults: list[str]
+    vaults: list[VaultInfo]
 
 class ListDocsResponse(BaseModel):
     vault_name: str

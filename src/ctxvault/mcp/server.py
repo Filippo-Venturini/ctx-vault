@@ -5,6 +5,7 @@ from mcp.server.fastmcp import FastMCP
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 import logging
+import argparse
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -16,11 +17,22 @@ async def lifespan(server):
     logger.info("Warm-up complete.")
     yield
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--agent", type=str, default=None)
+args, _ = parser.parse_known_args()
+
+AGENT_ID = args.agent
+
 mcp = FastMCP("ctxvault", lifespan=lifespan)
+
+def check_access(vault_name: str, agent_name: str):
+    if not vault.is_authorized(vault_name, agent_name):
+        raise PermissionError(f"Agent '{agent_name}' is not authorized to access vault '{vault_name}'")
 
 @mcp.tool(description="Search for relevant information in a CtxVault vault using semantic similarity. Use this when the user asks a question that might be answered by their personal knowledge base or documents. Returns the most relevant text chunks with their source files.")
 def query(vault_name: str, query: str) -> QueryResponse:
     try:
+        check_access(vault_name, AGENT_ID)
         result = vault.query(vault_name=vault_name, text=query, filters=None)
         return QueryResponse(results=result.results)
     except VaultNotFoundError:
@@ -31,6 +43,7 @@ def query(vault_name: str, query: str) -> QueryResponse:
 @mcp.tool(description="Save new information or agent-generated content to a vault for future retrieval. Use this to persist important context, summaries, or notes that should be remembered across sessions. Supports .txt, .md, and .docx formats.")
 def write(vault_name: str, file_path: str, content: str, generated_by: str, overwrite: bool = False)-> WriteResponse:
     try:
+        check_access(vault_name, AGENT_ID)
         timestamp = datetime.now(timezone.utc).isoformat()
         vault.write_file(vault_name=vault_name,
                          file_path=file_path, 
@@ -54,9 +67,9 @@ def list_vaults()-> ListVaultsResponse:
     return ListVaultsResponse(vaults=vaults)
 
 @mcp.tool(description="List all indexed documents inside a specific vault. Use this to understand what knowledge is available before performing a search.")
-
 def list_docs(vault_name: str) -> ListDocsResponse:
     try:        
+        check_access(vault_name, AGENT_ID)
         documents = vault.list_documents(vault_name=vault_name)
         return ListDocsResponse(vault_name=vault_name, documents=documents)
     except VaultNotFoundError as e:

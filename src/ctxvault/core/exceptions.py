@@ -39,3 +39,11 @@ class FileAlreadyExistError(Exception):
 class EmptyQueryError(Exception):
     """Raised when trying to query a vault with an empty query."""
     pass
+
+class VaultAccessDeniedError(Exception):
+    """Raised when agents try to access a restricted vault they are not authorized to access."""
+    pass
+
+class MissingAgentNameError(Exception):
+    """Raised when agents try to access a restricted vault without providing an agent name."""
+    pass

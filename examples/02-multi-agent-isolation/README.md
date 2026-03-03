@@ -1,34 +1,39 @@
 # LangGraph Multi-Vault Example
 
-Privacy-aware multi-agent system with **isolated knowledge access**.
+Privacy-aware multi-agent system with **vault-level access control**.
 
 ## Scenario
 
-Two agents with different security clearances:
+Two agents with different access rights:
 
-- **Public Agent** → accesses public research papers only
-- **Internal Agent** → accesses confidential company documents only  
-- **Router** → intelligently routes queries based on content
+- **Public Agent** — authorized to access public research papers only
+- **Internal Agent** — authorized to access confidential company documents only
+- **Router** — routes queries to the appropriate agent based on content
 
-This demonstrates **semantic isolation** - the public agent literally cannot access internal docs, even if prompted to do so.
+The key point: access is not enforced by the routing logic. It is enforced at
+the vault level. Even if the router makes a mistake, the server rejects any
+agent that is not authorized for that vault.
 
 ## Why This Matters
 
-Traditional multi-agent systems share a single knowledge base. This creates:
-- Privacy risks (agents see everything)
-- Context pollution (irrelevant docs in retrieval)
-- No access control at semantic layer
+Traditional multi-agent systems solve knowledge isolation with metadata
+filtering or routing rules. Both approaches share the same failure mode: one
+misconfiguration and agents see what they shouldn't.
 
-**CtxVault solves this** with multi-vault architecture:
-- Each agent has its own isolated vault
-- Router controls access at query time
-- Zero chance of cross-contamination
+CtxVault enforces isolation at the infrastructure layer:
+
+- Each vault has an explicit list of authorized agents
+- Authorization is checked server-side on every operation
+- No routing logic, no prompt rules, no metadata schema to get wrong
+
+The topology is declared once via CLI. The code does not need to enforce it.
 
 ## Setup
 
 ### 1. Install dependencies
 ```bash
-python -m venv .venv-example-02 && source .venv-example-02/bin/activate  # Windows: .venv-example-02\Scripts\activate
+python -m venv .venv-example-02
+source .venv-example-02/bin/activate  # Windows: .venv-example-02\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -37,19 +42,36 @@ pip install -r requirements.txt
 export OPENAI_API_KEY="your-key-here"
 ```
 
-### 3. Run
+### 3. Initialize vaults and configure access control
+
+Create the vaults and declare which agent is authorized to access each one:
+```bash
+ctxvault init public --path vaults/public
+ctxvault init internal --path vaults/internal
+
+ctxvault attach public public-agent
+ctxvault attach internal internal-agent
+```
+
+This is the topology declaration. From this point, `public-agent` can only
+access the public vault and `internal-agent` can only access the internal
+vault — regardless of what the code instructs them to do.
+
+### 4. Run
 ```bash
 python app.py
 ```
 
 ## What Happens
 
-The script:
-1. Creates two vaults (`public` and `internal`)
-2. Indexes sample documents into each vault
-3. Runs example queries showing routing logic
-4. Public queries → public vault only
-5. Internal queries → internal vault only
+1. Both vaults are indexed with their respective documents
+2. The router classifies each query as public or internal
+3. The appropriate agent queries its authorized vault
+4. Each request carries the agent identity in the header
+5. The server verifies authorization before returning results
+
+If an agent attempts to access a vault it is not authorized for, the server
+returns 403 regardless of how the request was made.
 
 ## Example Output
 ```
@@ -61,50 +83,41 @@ ANSWER: The key principles are superposition, entanglement...
 QUERY: What is Project Atlas and when is it launching?
 [ROUTER] Detected internal query → routing to Internal Agent
 [INTERNAL AGENT] Retrieving from internal vault...
-ANSWER: Project Atlas is our next-generation semantic search platform...
+ANSWER: Project Atlas is our next-generation platform...
 ```
 
-## Try Your Own Queries
-
-Modify the `queries` list in `main()` to test different scenarios:
-
-**Public queries** (will use public vault):
-- "How do neural networks learn?"
-- "What is quantum entanglement?"
-
-**Internal queries** (will use internal vault):
-- "What are our revenue projections?"
-- "What challenges does Project Atlas face?"
-
-## Architecture Diagram
+## Architecture
 ```
 User Query
     ↓
 [Router Node]
     ↓
-    ├─→ "public" → [Public Agent] → query_vault("public") → Answer
-    └─→ "internal" → [Internal Agent] → query_vault("internal") → Answer
+    ├─→ "public"   → [Public Agent]   → query_vault("public",   agent="public-agent")
+    └─→ "internal" → [Internal Agent] → query_vault("internal", agent="internal-agent")
+                                              ↓
+                                     Server verifies agent
+                                     against vault config
+                                     before returning results
 ```
 
-## Key Takeaway
+## Key Difference From Routing-Based Isolation
 
-**CtxVault enables privacy-aware AI agents** without complex access control logic in your code.
+Routing-based isolation:
+- Public agent queries public vault because the router told it to
+- If the router has a bug, the public agent can reach internal docs
+- Isolation depends on the correctness of your application code
 
-Simply:
-1. Create separate vaults for different security contexts
-2. Route queries to appropriate vault
-3. Each agent only sees what it should see
+Vault-level access control:
+- Public agent queries public vault and is also only allowed to query it
+- If the router has a bug, the server rejects the unauthorized request
+- Isolation is enforced at the infrastructure layer, independent of your code
 
-Perfect for:
-- Enterprise systems with compliance requirements
-- Multi-tenant applications
-- Personal + work knowledge separation
-- Agent specialization by domain
+## Total Code
 
----
+~200 lines for a complete multi-agent system with infrastructure-enforced
+knowledge isolation.
 
-**Total code:** ~200 lines for complete multi-agent system with semantic isolation.
+## Want More?
 
-**Want more?** Check out:
-- Example 01 (simple RAG) for basic retrieval
-- Example 03 (persistent memory) for long-term semantic memory that persists across sessions
+- Example 01 — semantic RAG over documents
+- Example 03 — persistent memory across sessions
