@@ -28,7 +28,11 @@ CtxVault is built around a different primitive. Memory is organized into **vault
 The result is a memory layer that behaves like real infrastructure: composable, observable, persistent and entirely local.
 
 <div align="center">
-  <img alt="Logo" src="./assets/ctxvault_schema.svg">
+  <img 
+    src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/ctxvault_schema.svg"
+    alt="CtxVault architecture schema"
+    width="1200"
+  >
 </div>
 
 ---
