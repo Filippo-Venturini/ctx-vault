@@ -112,14 +112,14 @@ CtxVault exposes the same vault layer through three interfaces. Use whichever fi
 
 ## CtxVault vs Alternatives
 
-| | CtxVault | Pinecone / Weaviate | LangChain VectorStores | Mem0 / Zep |
-|--|----------|---------------------|------------------------|------------|
-| **Storage** | Local | Cloud | Local or cloud | Cloud |
-| **Vault isolation** | Structural | ✗ | ✗ | Partial |
-| **Access control** | ✓ | ✗ | ✗ | ✗ |
-| **Human CLI observability** | ✓ | ✗ | ✗ | ✗ |
-| **Agent write support** | ✓ | ✓ | ✗ | ✓ |
-| **MCP server** | ✓ | ✗ | ✗ | ✗ |
+| | CtxVault | ChromaDB + custom | LangChain Memory | Mem0 |
+|--|----------|-------------------|------------------|------|
+| Vault isolation | ✓ | ✗ — you build it | ✗ | ✗ |
+| Access control | ✓ | ✗ — you build it | ✗ | ✗ |
+| Agent-written memory | ✓ | ✗ — you build it | Partial | Partial |
+| Human CLI observability | ✓ | ✗ | ✗ | ✗ |
+| Local-first | ✓ | ✓ | ✓ | ✗ (cloud) |
+| MCP server | ✓ | ✗ — you build it | ✗ | ✗ |
 
 ---
 
@@ -132,6 +132,7 @@ Three scenarios — each with full code and setup instructions.
 | 🟢 | [**Personal Research Assistant**](examples/01-simple-rag/) | Single vault, single agent. Semantic RAG over PDF, MD, TXT, DOCX with source attribution. ~100 lines.  |
 | 🔴 | [**Multi-Agent Isolation**](examples/02-multi-agent-isolation/) | Two agents, two vaults. Each agent has no retrieval path to the other's vault — isolation enforced at the infrastructure layer, not through metadata filtering. ~200 lines.|
 | 🔵 | [**Persistent Memory Agent**](examples/03-persistent-memory/) | An agent that recalls context across sessions using semantic queries. "financial constraints" retrieves "cut cloud costs by 15%" written three days prior. |
+| 🟡 | [**Composed Topology**](examples/04-composed-topology/) | Three agents, five vaults — private, shared between a subset, and public. A tiered support system where access boundaries reflect organizational boundaries. |
 
 ---
 
