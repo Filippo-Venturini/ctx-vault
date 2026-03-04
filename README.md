@@ -41,10 +41,19 @@ Isolation enforced through prompt logic or metadata schemas is fragile — it gr
 
 In CtxVault, each vault is an independent index. Agents have no shared retrieval path unless one is explicitly defined. Vaults can be declared restricted, with access granted to specific agents directly through the CLI. The boundary is part of the architecture, not a rule written in a config file that someone might later get wrong.
 
-```bash
-# Initialize a restricted vault and attach only the agent that should reach it
-ctxvault init internal-docs --restricted
-ctxvault attach internal-docs research-agent
+```
+Found 3 vaults
+
+> agent-a-vault [RESTRICTED]
+  path:    ~/.ctxvault/vaults/agent-a-vault
+  agents:  agent-a
+
+> shared-vault [PUBLIC]
+  path:    ~/.ctxvault/vaults/shared-vault
+
+> agent-c-vault [RESTRICTED]
+  path:    ~/.ctxvault/vaults/agent-c-vault
+  agents:  agent-c
 ```
 
 ---
@@ -512,8 +521,9 @@ require it.
 - [x] Multi-vault support
 - [x] Agent write API
 - [x] MCP server support
+- [x] Access control
 - [ ] File watcher / auto-sync
-- [ ] Hybrid search (semantic + keyword)
+- [ ] Context pruning
 - [ ] Configurable embedding models
 
 ---
