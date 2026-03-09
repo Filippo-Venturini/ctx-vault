@@ -59,8 +59,16 @@ def query(name: str = typer.Argument("my-vault"), text: str = typer.Argument("")
     typer.echo("\n" + "─" * 80)
 
 @app.command()
-def delete(name: str = typer.Argument("my-vault"), path: str = typer.Option(None, "--path")):
+def delete(name: str = typer.Argument("my-vault"), path: str = typer.Option(None, "--path"), purge: bool = typer.Option(False, "--purge")):
+    if purge and path:
+        typer.secho("Error: --purge and --path are mutually exclusive.", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
     try:
+        if purge:
+            vault.purge_vault(vault_name=name)
+            typer.secho(f"Vault '{name}' permanently deleted.", fg=typer.colors.RED, bold=True)
+            return
+        
         deleted_files, skipped_files = vault.delete_files(vault_name=name, path=path)
 
         for file in deleted_files:

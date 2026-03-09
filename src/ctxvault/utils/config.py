@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import shutil
 from ctxvault.core.exceptions import VaultAlreadyExistsError, VaultNotFoundError, MissingAgentNameError
 
 CONFIG_DIR = Path.home() / ".ctxvault"
@@ -121,4 +122,18 @@ def make_public(vault_name: str) -> None:
     vault_config["allowed_agents"] = []
     vault_config["restricted"] = False
     config["vaults"][vault_name] = vault_config
+    _save_global_config(config)
+
+def delete_vault(vault_name: str) -> None:
+    config = _load_global_config()
+
+    if config["vaults"].get(vault_name) is None:
+        raise VaultNotFoundError(f"Vault '{vault_name}' does not exist.")
+
+    vault_path = Path(config["vaults"][vault_name]["vault_path"])
+
+    if vault_path.exists():
+        shutil.rmtree(vault_path)
+
+    del config["vaults"][vault_name]
     _save_global_config(config)

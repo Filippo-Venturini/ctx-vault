@@ -1,17 +1,27 @@
 from pathlib import Path
 from ctxvault.models.documents import DocumentInfo
 from ctxvault.models.query_result import ChunkMatch, QueryResult
-from ctxvault.utils.config import attach_agent_to_vault, create_vault, detach_agent_from_vault, get_vault_config, get_vaults, is_authorized, make_public as _make_public
+from ctxvault.utils.config import attach_agent_to_vault, create_vault, delete_vault, detach_agent_from_vault, get_vault_config, get_vaults, is_authorized, make_public as _make_public
 from ctxvault.core.exceptions import EmptyQueryError, FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, PathOutsideVaultError, UnsupportedFileTypeError
 from ctxvault.utils.text_extraction import SUPPORTED_EXT
 
-def _get_base_path(path: str, vault_path: Path)-> Path:
+def _get_base_path(path: str, vault_path: Path) -> Path:
     if not path:
-        base_path = vault_path
+        return vault_path
+    
+    input_path = Path(path)
+    
+    if input_path.is_absolute():
+        base_path = input_path
     else:
-        base_path = Path(path)
-        if not base_path.resolve().is_relative_to(vault_path):
-            raise PathOutsideVaultError(f"The path must be inside the Context Vault.")
+        base_path = (vault_path / input_path).resolve()
+    
+    if not base_path.is_relative_to(vault_path.resolve()):
+        raise PathOutsideVaultError("The path must be inside the Context Vault.")
+    
+    if not base_path.exists():
+        raise FileNotFoundError(f"Path not found inside the vault: {base_path}")
+    
     return base_path
 
 def warmup() -> None:
@@ -37,6 +47,9 @@ def detach_agent(vault_name: str, agent_name: str) -> None:
 
 def make_public(vault_name: str) -> None:
     _make_public(vault_name=vault_name)
+
+def purge_vault(vault_name: str) -> None:
+    delete_vault(vault_name=vault_name)
 
 def init_vault(vault_name: str, restricted: bool = False, path: str | None = None)-> tuple[str, str]:
 

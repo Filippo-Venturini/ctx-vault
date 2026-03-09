@@ -410,18 +410,21 @@ Found 2 documents in 'my-vault'
 ---
 
 #### `delete`
-Remove a document from a vault.
+Remove documents from a vault or delete the vault entirely.
 ```bash
-ctxvault delete <vault> --path <path>
+ctxvault delete <vault> [--path <path>] [--purge]
 ```
 
 **Arguments:**
 - `<vault>` - Vault name (required)
-- `--path <path>` - File path to delete (required)
+- `--path <path>` - File or directory path to delete, relative to the vault root (optional, deletes all documents if omitted)
+- `--purge` - Permanently delete the vault, all its documents and indexes (cannot be used together with `--path`)
 
-**Example:**
+**Examples:**
 ```bash
-ctxvault delete my-vault --path paper.pdf
+ctxvault delete my-vault                        # removes all documents and indexes
+ctxvault delete my-vault --path paper.pdf       # removes a specific document
+ctxvault delete my-vault --purge                # removes the vault entirely
 ```
 
 ---
