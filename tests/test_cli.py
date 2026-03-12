@@ -4,7 +4,6 @@ import pytest
 
 runner = CliRunner()
 
-
 def test_cli_init(mock_vault_not_initialized):
     result = runner.invoke(
         app,
@@ -68,3 +67,21 @@ def test_cli_docs(mock_vault_config):
     result = runner.invoke(app, ["docs", "test_vault"])
     assert result.exit_code == 0
     assert "Found" in result.stdout
+
+def test_cli_init_already_exists(mock_vault_config):
+    result = runner.invoke(app, ["init", "test_vault"])
+    assert result.exit_code == 1
+    assert "already" in result.stdout.lower()
+
+def test_cli_delete_purge(mock_vault_config):
+    result = runner.invoke(app, ["delete", "test_vault", "--purge"])
+    assert result.exit_code == 0
+    assert "permanently deleted" in result.stdout
+
+def test_cli_vaults_shows_scope(mock_vault_config):
+    result = runner.invoke(app, ["vaults"])
+    assert "global" in result.stdout or "local" in result.stdout
+
+def test_cli_query_empty_text(mock_vault_config):
+    result = runner.invoke(app, ["query", "test_vault", "   "])
+    assert result.exit_code == 1

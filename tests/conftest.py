@@ -48,21 +48,9 @@ def mock_chroma(monkeypatch):
 @pytest.fixture
 def mock_global_config(tmp_path, monkeypatch):
     config_dir = tmp_path / ".ctxvault"
-    config_file = config_dir / "config.json"
-    vaults_dir = config_dir / "vaults"
 
-    monkeypatch.setattr(
-        "ctxvault.utils.config.CONFIG_DIR",
-        config_dir,
-    )
-    monkeypatch.setattr(
-        "ctxvault.utils.config.CONFIG_FILE",
-        config_file,
-    )
-    monkeypatch.setattr(
-        "ctxvault.utils.config.VAULTS_DIR",
-        vaults_dir,
-    )
+    monkeypatch.setattr("ctxvault.utils.config.GLOBAL_DIR", config_dir)
+    monkeypatch.setattr("ctxvault.utils.config._find_local_root", lambda: None)
 
     return config_dir
 

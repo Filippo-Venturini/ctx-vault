@@ -85,3 +85,59 @@ def test_list_vaults_returns_list(mock_global_config):
 def test_list_vaults_contains_created_vault(mock_vault_config):
     result = vault.list_vaults()
     assert any(v['name'] == 'test_vault' for v in result)
+
+def test_init_vault_already_exists_raises(mock_vault_config):
+    with pytest.raises(Exception):
+        vault.init_vault(vault_name="test_vault", path=None)
+
+def test_query_empty_text_raises(mock_vault_config):
+    with pytest.raises(Exception):
+        vault.query(text="  ", vault_name="test_vault")
+
+def test_index_file_unsupported_type_raises(mock_vault_config, tmp_path):
+    vault_path = mock_vault_config
+    bad_file = vault_path / "file.xyz"
+    bad_file.write_text("content")
+    with pytest.raises(Exception):
+        vault.index_file(file_path=bad_file, vault_config=vault.get_vault_config("test_vault"))
+
+def test_index_file_outside_vault_raises(mock_vault_config, tmp_path):
+    outside = tmp_path / "outside.txt"
+    outside.write_text("content")
+    with pytest.raises(Exception):
+        vault.index_file(file_path=outside, vault_config=vault.get_vault_config("test_vault"))
+
+def test_iter_files_single_file(temp_docs):
+    single = temp_docs / "file1.txt"
+    files = list(vault.iter_files(single))
+    assert len(files) == 1
+
+def test_iter_files_excludes_dir(mock_vault_config):
+    vault_path = mock_vault_config
+    db_path = vault_path / "chroma"
+    files = list(vault.iter_files(vault_path, exclude_dirs=[db_path]))
+    assert not any("chroma" in str(f) for f in files)
+
+def test_list_vaults_scope(mock_vault_config):
+    result = vault.list_vaults()
+    for v in result:
+        assert v.get("scope") in ("local", "global")
+    assert any(v["name"] == "test_vault" and v["scope"] == "global" for v in result)
+
+def test_write_file_creates_and_indexes(mock_vault_config):
+    vault.write_file(
+        vault_name="test_vault",
+        file_path="notes/test.txt",
+        content="hello world"
+    )
+    vault_path = mock_vault_config
+    assert (vault_path / "notes" / "test.txt").exists()
+
+def test_write_file_no_overwrite_raises(mock_vault_config):
+    vault.write_file(vault_name="test_vault", file_path="dup.txt", content="first")
+    with pytest.raises(Exception):
+        vault.write_file(vault_name="test_vault", file_path="dup.txt", content="second", overwrite=False)
+
+def test_write_file_unsupported_type_raises(mock_vault_config):
+    with pytest.raises(Exception):
+        vault.write_file(vault_name="test_vault", file_path="file.xyz", content="content")

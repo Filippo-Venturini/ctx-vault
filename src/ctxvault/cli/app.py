@@ -5,6 +5,25 @@ from ctxvault.core.exceptions import PathOutsideVaultError, VaultAlreadyExistsEr
 
 app = typer.Typer()
 
+def _print_vault(v: dict):
+    allowed_agents = v.get("allowed_agents")
+    is_restricted = v.get("restricted", False)
+
+    if is_restricted:
+        typer.secho(f"> {v['name']} [RESTRICTED]", fg=typer.colors.YELLOW, bold=True)
+    else:
+        typer.secho(f"> {v['name']} [PUBLIC]", fg=typer.colors.GREEN, bold=True)
+
+    typer.echo(f"  path:  {v['vault_path']}")
+
+    if is_restricted:
+        if allowed_agents:
+            typer.echo(f"  allowed agents: {', '.join(allowed_agents)}")
+        else:
+            typer.secho(f"  allowed agents: none authorized yet", fg=typer.colors.YELLOW)
+
+    typer.echo("")
+
 @app.command()
 def init(name: str = typer.Argument("my-vault"), restricted: bool = typer.Option(False, "--restricted"), path: str = typer.Option(None, "--path")):
     try:
@@ -37,26 +56,30 @@ def index(name: str = typer.Argument("my-vault"), path: str = typer.Option(None,
     
 @app.command()
 def query(name: str = typer.Argument("my-vault"), text: str = typer.Argument("")):
-    result = vault.query(text=text, vault_name=name)
-    if not result.results:
-        typer.secho("No results found.", fg=typer.colors.YELLOW)
-        return
+    try:
+        result = vault.query(text=text, vault_name=name)
+        if not result.results:
+            typer.secho("No results found.", fg=typer.colors.YELLOW)
+            return
 
-    typer.secho(f"\n Found {len(result.results)} chunks", fg=typer.colors.GREEN, bold=True)
-    typer.echo("─" * 80)
-    
-    for idx, chunk in enumerate(result.results, 1):
-        typer.secho(f"\n[{idx}] ", fg=typer.colors.CYAN, bold=True, nl=False)
-        typer.secho(f"score: {chunk.score:.3f}", fg=typer.colors.MAGENTA)
-        typer.secho(f"    ▸ {chunk.source} ", fg=typer.colors.BLUE, nl=False)
-        typer.echo(f"(chunk {chunk.chunk_index})")
+        typer.secho(f"\n Found {len(result.results)} chunks", fg=typer.colors.GREEN, bold=True)
+        typer.echo("─" * 80)
+        
+        for idx, chunk in enumerate(result.results, 1):
+            typer.secho(f"\n[{idx}] ", fg=typer.colors.CYAN, bold=True, nl=False)
+            typer.secho(f"score: {chunk.score:.3f}", fg=typer.colors.MAGENTA)
+            typer.secho(f"    ▸ {chunk.source} ", fg=typer.colors.BLUE, nl=False)
+            typer.echo(f"(chunk {chunk.chunk_index})")
 
-        preview = chunk.text.strip().replace("\n", " ")
-        if len(preview) > 200:
-            preview = preview[:200] + "..."
-        typer.echo(f"    {preview}")
-    
-    typer.echo("\n" + "─" * 80)
+            preview = chunk.text.strip().replace("\n", " ")
+            if len(preview) > 200:
+                preview = preview[:200] + "..."
+            typer.echo(f"    {preview}")
+        
+        typer.echo("\n" + "─" * 80)
+    except Exception as e:
+        typer.secho(f"Error during querying: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
 
 @app.command()
 def delete(name: str = typer.Argument("my-vault"), path: str = typer.Option(None, "--path"), purge: bool = typer.Option(False, "--purge")):
@@ -97,67 +120,80 @@ def reindex(name: str = typer.Argument("my-vault"), path: str = typer.Option(Non
         typer.secho(f"Reindexed: {len(reindexed_files)}", fg=typer.colors.GREEN, bold=True)
         typer.secho(f"Skipped: {len(skipped_files)}", fg=typer.colors.YELLOW, bold=True)
     except Exception as e:
-        typer.secho(f"Error during indexing: {e}", fg=typer.colors.RED, bold=True)
+        typer.secho(f"Error during reindexing: {e}", fg=typer.colors.RED, bold=True)
         raise typer.Exit(1)
 
 @app.command()
 def vaults():
     vaults_list = vault.list_vaults()
-    typer.secho(f"\nFound {len(vaults_list)} vaults\n", fg=typer.colors.GREEN, bold=True)
 
-    for v in vaults_list:
-        allowed_agents = v.get("allowed_agents")
-        is_restricted = v.get("restricted", False)
+    local_vaults = [v for v in vaults_list if v.get("scope") == "local"]
+    global_vaults = [v for v in vaults_list if v.get("scope") == "global"]
 
-        if is_restricted:
-            typer.secho(f"> {v['name']} [RESTRICTED]", fg=typer.colors.YELLOW, bold=True)
-        else:
-            typer.secho(f"> {v['name']} [PUBLIC]", fg=typer.colors.GREEN, bold=True)
+    typer.secho(f"\nFound {len(vaults_list)} vaults ({len(local_vaults)} local, {len(global_vaults)} global)\n", fg=typer.colors.GREEN, bold=True)
 
-        typer.echo(f"  path:  {v['vault_path']}")
+    if local_vaults:
+        typer.secho("── local ──────────────────────────", fg=typer.colors.CYAN, bold=True)
+        for v in local_vaults:
+            _print_vault(v)
 
-        if is_restricted:
-            if allowed_agents:
-                typer.echo(f"  allowed agents: {', '.join(allowed_agents)}")
-            else:
-                typer.secho(f"  allowed agents: none authorized yet", fg=typer.colors.YELLOW)
-
-        typer.echo("")
+    if global_vaults:
+        typer.secho("── global ─────────────────────────", fg=typer.colors.CYAN, bold=True)
+        for v in global_vaults:
+            _print_vault(v)
 
 @app.command()
 def docs(name: str = typer.Argument("my-vault")):
-    documents = vault.list_documents(vault_name=name)
+    try:
 
-    typer.secho(f"\nFound {len(documents)} documents in '{name}'\n", fg=typer.colors.GREEN, bold=True)
+        documents = vault.list_documents(vault_name=name)
 
-    for i, doc in enumerate(documents, 1):
-        filename = Path(doc.source).name
-        typer.echo(f"  {i}. {filename}")
-        typer.secho(f"     {doc.filetype} · {doc.chunks_count} chunks", fg=typer.colors.BRIGHT_BLACK)
+        typer.secho(f"\nFound {len(documents)} documents in '{name}'\n", fg=typer.colors.GREEN, bold=True)
+
+        for i, doc in enumerate(documents, 1):
+            filename = Path(doc.source).name
+            typer.echo(f"  {i}. {filename}")
+            typer.secho(f"     {doc.filetype} · {doc.chunks_count} chunks", fg=typer.colors.BRIGHT_BLACK)
+
+    except Exception as e:
+        typer.secho(f"Error during document listing: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
 
 @app.command()
 def attach(vault_name: str = typer.Argument("my-vault"), agent_name: str = typer.Argument(...)):
-    typer.echo(f"Attaching agent {agent_name} to vault {vault_name}...")
+    try:
+        typer.echo(f"Attaching agent {agent_name} to vault {vault_name}...")
 
-    vault.attach_agent(vault_name=vault_name, agent_name=agent_name)
+        vault.attach_agent(vault_name=vault_name, agent_name=agent_name)
 
-    typer.secho(f"Agent {agent_name} attached to vault {vault_name} successfully!", fg=typer.colors.GREEN, bold=True)
+        typer.secho(f"Agent {agent_name} attached to vault {vault_name} successfully!", fg=typer.colors.GREEN, bold=True)
+    except Exception as e:
+        typer.secho(f"Error during agent attachment: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
 
 @app.command()
 def detach(vault_name: str = typer.Argument("my-vault"), agent_name: str = typer.Argument(...)):
-    typer.echo(f"Detaching agent {agent_name} from vault {vault_name}...")
+    try:
+        typer.echo(f"Detaching agent {agent_name} from vault {vault_name}...")
 
-    vault.detach_agent(vault_name=vault_name, agent_name=agent_name)
-    
-    typer.secho(f"Agent {agent_name} detached from vault {vault_name} successfully!", fg=typer.colors.GREEN, bold=True)
+        vault.detach_agent(vault_name=vault_name, agent_name=agent_name)
+
+        typer.secho(f"Agent {agent_name} detached from vault {vault_name} successfully!", fg=typer.colors.GREEN, bold=True)
+    except Exception as e:
+        typer.secho(f"Error during agent detachment: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
 
 @app.command()
 def publish(vault_name: str = typer.Argument("my-vault")):
-    typer.echo(f"Making {vault_name} public...")
+    try:
+        typer.echo(f"Making {vault_name} public...")
 
-    vault.make_public(vault_name=vault_name)
-    
-    typer.secho(f"Vault {vault_name} is now public!", fg=typer.colors.GREEN, bold=True)
+        vault.make_public(vault_name=vault_name)
+
+        typer.secho(f"Vault {vault_name} is now public!", fg=typer.colors.GREEN, bold=True)
+    except Exception as e:
+        typer.secho(f"Error during vault publishing: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
 
 def main():
     app()
