@@ -289,8 +289,9 @@ ctxvault init <name> [--path <path>] [--restricted]
 
 **Example:**
 ```bash
-ctxvault init my-vault
-ctxvault init my-vault --path /data/vaults
+ctxvault init my-vault                    # global vault, stored in ~/.ctxvault
+ctxvault init my-vault --path .           # local vault, pinned to current project
+ctxvault init my-vault --path /data       # local vault at custom path
 ctxvault init my-vault --restricted
 ```
 
@@ -458,22 +459,36 @@ ctxvault vaults
 ctxvault vaults
 ```
 ```
-Found 2 vaults
+Found 3 vaults (1 local, 2 global)
+
+── local ──────────────────────────
+> project-vault [PUBLIC]
+  path:  /my-project/.ctxvault/vaults/project-vault
+
+── global ─────────────────────────
 > atlas-vault [RESTRICTED]
-  path:    ~/.ctxvault/vaults/atlas-vault
-  agents:  atlas-agent
+  path:  ~/.ctxvault/vaults/atlas-vault
+  allowed agents: atlas-agent
 
 > research-vault [PUBLIC]
-  path:    ~/.ctxvault/vaults/research-vault
+  path:  ~/.ctxvault/vaults/research-vault
 ```
 
 ---
 
 **Vault management:**
-- Default location: `~/.ctxvault/vaults/<vault-name>/`
-- Vault registry: `~/.ctxvault/config.json` tracks all vault names, paths, and access configuration
-- Custom paths: use `--path` during `init` to create vault at a custom location
-- All other commands reference vaults by name — path lookup is handled via `config.json`
+- Default location: `~/.ctxvault/vaults/<vault-name>/` — global, available everywhere
+- Local vaults: use `--path` during `init` to pin a vault to a project directory.
+  The vault is stored inside a `.ctxvault/` folder at the given path, alongside a
+  local `config.json`. Commit `.ctxvault/config.json` to make the vault setup
+  portable and reproducible across machines.
+- Config lookup: CtxVault searches for a local config from the current directory
+  upward, then falls back to the global `~/.ctxvault/config.json`. This means you
+  can use `ctxvault` from anywhere inside a project and it will find your local vaults
+  automatically — no `--path` required after init.
+- Global vaults are always visible alongside local ones. If a local and global vault
+  share the same name, the local one takes precedence.
+- Vault registry: `~/.ctxvault/config.json` (global) or `.ctxvault/config.json` (local)
 
 **Access control:**
 - Vaults are public by default — any agent can access them
