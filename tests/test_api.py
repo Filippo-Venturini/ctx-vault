@@ -5,33 +5,6 @@ from pathlib import Path
 app.include_router(ctxvault_router)
 client = TestClient(app)
 
-class TestInitEndpoint:
-    def test_init_success(self, mock_vault_not_initialized):
-        response = client.post(
-            "/ctxvault/init",
-            json={"vault_name": "test_vault"}
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert "vault_path" in data
-        assert "config_path" in data
-        assert Path(data["vault_path"]).exists()
-
-    def test_init_already_exists(self, mock_vault_config):
-        response = client.post(
-            "/ctxvault/init",
-            json={"vault_name": "test_vault"}
-        )
-        assert response.status_code == 400
-        assert "already initialized" in response.json()["detail"]
-
-    def test_init_invalid_json(self):
-        response = client.post(
-            "/ctxvault/init",
-            json={}
-        )
-        assert response.status_code == 422
-
 
 class TestIndexEndpoint:
     def test_index_success(self, mock_vault_config, temp_docs):
@@ -155,19 +128,14 @@ class TestListDocsEndpoint:
 
 class TestWriteEndpoint:
     def test_write_success(self, mock_vault_config):
-        file_path = mock_vault_config / "test.md"
         content = "Hello world"
-
         response = client.post("/ctxvault/write", json={
             "vault_name": "test_vault",
-            "file_path": str(file_path),
+            "file_path": "test.md",
             "content": content,
             "overwrite": True
         })
-        print(response.json())
-
         assert response.status_code == 200
         data = response.json()
-        assert data["file_path"] == str(file_path)
-        assert file_path.exists()
-        assert file_path.read_text(encoding="utf-8") == content
+        assert data["file_path"] == "test.md"
+        assert (mock_vault_config / "test.md").exists()

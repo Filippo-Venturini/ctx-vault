@@ -13,18 +13,6 @@ def check_vault_access(vault_name: str, request: Request):
     if not vault.is_authorized(vault_name, agent):
         raise VaultAccessDeniedError(f"Agent '{agent}' is not authorized to access vault '{vault_name}'")
 
-@ctxvault_router.post(
-    "/init",
-    summary="Initialize a new vault",
-    description="Create and register a new local semantic vault."
-)
-async def init(init_request: InitRequest)-> InitResponse:
-    try:
-        vault_path, config_path = vault.init_vault(vault_name=init_request.vault_name, restricted=init_request.restricted, path=init_request.vault_path)
-        return InitResponse(vault_path=vault_path, config_path=config_path)
-    except VaultAlreadyExistsError as e:
-        raise HTTPException(status_code=400, detail=f"Vault already initialized at {e.existing_path}")
-
 @ctxvault_router.put(
     "/index",
     summary="Index documents into a vault",

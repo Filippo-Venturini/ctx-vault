@@ -51,6 +51,7 @@ def mock_global_config(tmp_path, monkeypatch):
 
     monkeypatch.setattr("ctxvault.utils.config.GLOBAL_DIR", config_dir)
     monkeypatch.setattr("ctxvault.utils.config._find_local_root", lambda: None)
+    monkeypatch.chdir(tmp_path)
 
     return config_dir
 
@@ -64,9 +65,7 @@ def mock_vault_not_initialized(mock_global_config, tmp_path):
 @pytest.fixture
 def mock_vault_config(mock_global_config):
     vault_name = "test_vault"
-
-    vault_path, config_path = create_vault(vault_name, False, None)
-
+    vault_path, config_path = create_vault(vault_name, False, None, global_vault=True)
     return Path(vault_path)
 
 @pytest.fixture

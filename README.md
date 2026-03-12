@@ -166,11 +166,11 @@ Both CLI and API follow the same workflow: create a vault → add documents → 
 ### CLI Usage
 
 ```bash
-# 1. Initialize a vault
+# 1. Initialize a vault (run from your project root)
 ctxvault init my-vault
 
 # 2. Add your documents to the vault folder
-# Default location: ~/.ctxvault/vaults/my-vault/
+# Default location: .ctxvault/vaults/my-vault/
 # Drop your .txt, .md, .pdf or .docx files there
 
 # 3. Index documents
@@ -180,10 +180,13 @@ ctxvault index my-vault
 ctxvault query my-vault "transformer architecture"
 
 # 5. List indexed documents
-ctxvault list my-vault
+ctxvault docs my-vault
 
 # 6. List all your vaults
 ctxvault vaults
+
+# For a machine-wide vault available everywhere
+ctxvault init my-vault --global
 ```
 
 ### Agent Integration
@@ -279,19 +282,20 @@ Initialize a new vault. Vaults are public by default — any agent can access th
 Pass `--restricted` to create a restricted vault, accessible only to explicitly
 attached agents.
 ```bash
-ctxvault init <name> [--path <path>] [--restricted]
+ctxvault init <name> [--path <path>] [--global] [--restricted]
 ```
 
 **Arguments:**
 - `<name>` - Vault name (required)
 - `--path <path>` - Custom vault location (optional, default: `~/.ctxvault/vaults/<name>`)
+- `--global` - Create a global vault in ~/.ctxvault, available from anywhere on the machine
 - `--restricted` - Create vault as restricted (optional, default: public)
 
 **Example:**
 ```bash
-ctxvault init my-vault                    # global vault, stored in ~/.ctxvault
-ctxvault init my-vault --path .           # local vault, pinned to current project
-ctxvault init my-vault --path /data       # local vault at custom path
+ctxvault init my-vault                      # local vault, pinned to current directory
+ctxvault init my-vault --path ./databases   # local vault, data under ./databases/vaults/my-vault
+ctxvault init my-vault --global             # global vault in ~/.ctxvault
 ctxvault init my-vault --restricted
 ```
 
@@ -477,18 +481,19 @@ Found 3 vaults (1 local, 2 global)
 ---
 
 **Vault management:**
-- Default location: `~/.ctxvault/vaults/<vault-name>/` — global, available everywhere
-- Local vaults: use `--path` during `init` to pin a vault to a project directory.
-  The vault is stored inside a `.ctxvault/` folder at the given path, alongside a
-  local `config.json`. Commit `.ctxvault/config.json` to make the vault setup
-  portable and reproducible across machines.
-- Config lookup: CtxVault searches for a local config from the current directory
-  upward, then falls back to the global `~/.ctxvault/config.json`. This means you
-  can use `ctxvault` from anywhere inside a project and it will find your local vaults
-  automatically — no `--path` required after init.
+- By default, `ctxvault init` creates a local vault pinned to the current directory —
+  similar to how `git init` works. A `.ctxvault/` folder is created in the current
+  directory containing `config.json` and the vault data. Commit `config.json` to make
+  the setup portable and reproducible across machines.
+- Use `--path` to store vault data in a custom location. The `.ctxvault/` config folder
+  always stays in the current directory regardless of `--path`.
+- Use `--global` for machine-wide vaults stored in `~/.ctxvault`, accessible from
+  anywhere without being tied to a project.
+- Config lookup: CtxVault searches for a local config from the current directory upward,
+  then falls back to `~/.ctxvault`. This means you can run any command from anywhere
+  inside a project and it will find your local vaults automatically.
 - Global vaults are always visible alongside local ones. If a local and global vault
   share the same name, the local one takes precedence.
-- Vault registry: `~/.ctxvault/config.json` (global) or `.ctxvault/config.json` (local)
 
 **Access control:**
 - Vaults are public by default — any agent can access them
@@ -505,7 +510,6 @@ Found 3 vaults (1 local, 2 global)
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/init` | POST | Initialize vault |
 | `/index` | PUT | Index entire vault or specific path |
 | `/query` | POST | Semantic search |
 | `/write` | POST | Write and index new file |
