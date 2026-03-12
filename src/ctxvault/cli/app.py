@@ -5,6 +5,25 @@ from ctxvault.core.exceptions import PathOutsideVaultError, VaultAlreadyExistsEr
 
 app = typer.Typer()
 
+def _print_vault(v: dict):
+    allowed_agents = v.get("allowed_agents")
+    is_restricted = v.get("restricted", False)
+
+    if is_restricted:
+        typer.secho(f"> {v['name']} [RESTRICTED]", fg=typer.colors.YELLOW, bold=True)
+    else:
+        typer.secho(f"> {v['name']} [PUBLIC]", fg=typer.colors.GREEN, bold=True)
+
+    typer.echo(f"  path:  {v['vault_path']}")
+
+    if is_restricted:
+        if allowed_agents:
+            typer.echo(f"  allowed agents: {', '.join(allowed_agents)}")
+        else:
+            typer.secho(f"  allowed agents: none authorized yet", fg=typer.colors.YELLOW)
+
+    typer.echo("")
+
 @app.command()
 def init(name: str = typer.Argument("my-vault"), restricted: bool = typer.Option(False, "--restricted"), path: str = typer.Option(None, "--path")):
     try:
@@ -107,26 +126,21 @@ def reindex(name: str = typer.Argument("my-vault"), path: str = typer.Option(Non
 @app.command()
 def vaults():
     vaults_list = vault.list_vaults()
-    typer.secho(f"\nFound {len(vaults_list)} vaults\n", fg=typer.colors.GREEN, bold=True)
 
-    for v in vaults_list:
-        allowed_agents = v.get("allowed_agents")
-        is_restricted = v.get("restricted", False)
+    local_vaults = [v for v in vaults_list if v.get("scope") == "local"]
+    global_vaults = [v for v in vaults_list if v.get("scope") == "global"]
 
-        if is_restricted:
-            typer.secho(f"> {v['name']} [RESTRICTED]", fg=typer.colors.YELLOW, bold=True)
-        else:
-            typer.secho(f"> {v['name']} [PUBLIC]", fg=typer.colors.GREEN, bold=True)
+    typer.secho(f"\nFound {len(vaults_list)} vaults ({len(local_vaults)} local, {len(global_vaults)} global)\n", fg=typer.colors.GREEN, bold=True)
 
-        typer.echo(f"  path:  {v['vault_path']}")
+    if local_vaults:
+        typer.secho("── local ──────────────────────────", fg=typer.colors.CYAN, bold=True)
+        for v in local_vaults:
+            _print_vault(v)
 
-        if is_restricted:
-            if allowed_agents:
-                typer.echo(f"  allowed agents: {', '.join(allowed_agents)}")
-            else:
-                typer.secho(f"  allowed agents: none authorized yet", fg=typer.colors.YELLOW)
-
-        typer.echo("")
+    if global_vaults:
+        typer.secho("── global ─────────────────────────", fg=typer.colors.CYAN, bold=True)
+        for v in global_vaults:
+            _print_vault(v)
 
 @app.command()
 def docs(name: str = typer.Argument("my-vault")):
