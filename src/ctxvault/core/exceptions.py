@@ -10,6 +10,10 @@ class ExtractionError(Exception):
     """Raised when text extraction fails for reasons other than file type."""
     pass
 
+class VaultTypeNotValidError(Exception):
+    """Raised when trying to initialize a vault with a not valid type"""
+    pass
+
 class VaultAlreadyExistsError(Exception):
     """Raised when a Context Vault is already initialized at that path."""
     def __init__(self, existing_path: str):

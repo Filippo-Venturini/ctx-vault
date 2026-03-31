@@ -51,12 +51,12 @@ class TestQueryEndpoint:
         assert "Query text cannot be empty." in response.json()["detail"]
 
     def test_query_no_results(self, mock_vault_config, monkeypatch):
-        from ctxvault.core import vault
+        from ctxvault.core import vault_router
         from unittest.mock import MagicMock
 
         mock_result = MagicMock()
         mock_result.results = []
-        monkeypatch.setattr(vault, "query", lambda vault_name, text, filters=None: mock_result)
+        monkeypatch.setattr(vault_router, "query", lambda vault_name, text, filters=None: mock_result)
 
         response = client.post(
             "/ctxvault/query",

@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import shutil
 from ctxvault.core.exceptions import VaultAlreadyExistsError, VaultNotFoundError, MissingAgentNameError
+from ctxvault.models.vaults import VaultType
 
 CTXVAULT_DIR_NAME = ".ctxvault"
 GLOBAL_DIR = Path.home() / CTXVAULT_DIR_NAME
@@ -58,56 +59,45 @@ def _get_vault_scope(vault_name: str, global_config: dict, local_config: dict) -
         return "global"
     return None
 
-def create_vault(vault_name: str, restricted: bool, vault_path: str, global_vault: bool = False) -> tuple[str, str]:
-
+def create_vault(vault_name: str, vault_type: VaultType, restricted: bool, vault_path: str | None, global_vault: bool = False) -> tuple[str, str]:
     if global_vault:
         global_config, _, _ = _load_config()
         config = global_config
-        vault_path = _vaults_dir(GLOBAL_DIR) / vault_name
         save_root = GLOBAL_DIR
-
-        if vault_name in config["vaults"]:
-            raise VaultAlreadyExistsError(f"Vault '{vault_name}' already exists.")
-
-        db_path = vault_path / "chroma"
-        vault_path.mkdir(parents=True, exist_ok=True)
-        db_path.mkdir(parents=True, exist_ok=True)
-
-        config["vaults"][vault_name] = {
-            "vault_path": vault_path.as_posix(),
-            "db_path": db_path.as_posix(),
-            "restricted": restricted,
-            "allowed_agents": []
-        }
+        vault_path_abs = _vaults_dir(GLOBAL_DIR) / vault_name
     else:
-        local_root = (Path.cwd() / CTXVAULT_DIR_NAME).resolve()
-        local_root.mkdir(exist_ok=True)
-        if _config_file(local_root).exists():
-            config = json.loads(_config_file(local_root).read_text())
-        else:
-            config = {"vaults": {}}
+        save_root = (Path.cwd() / CTXVAULT_DIR_NAME).resolve()
+        save_root.mkdir(exist_ok=True)
+        config = json.loads(_config_file(save_root).read_text()) if _config_file(save_root).exists() else {"vaults": {}}
+        vault_path_abs = (Path(vault_path) / "vaults" / vault_name).resolve() if vault_path else _vaults_dir(save_root) / vault_name
 
-        vault_path_abs = (Path(vault_path) / "vaults" / vault_name).resolve() if vault_path else _vaults_dir(local_root) / vault_name
-        save_root = local_root
+    if vault_name in config["vaults"]:
+        raise VaultAlreadyExistsError(f"Vault '{vault_name}' already exists.")
 
-        if vault_name in config["vaults"]:
-            raise VaultAlreadyExistsError(f"Vault '{vault_name}' already exists.")
+    db_path_posix = None
+    vault_path_abs.mkdir(parents=True, exist_ok=True)
 
+    if vault_type == VaultType.SEMANTIC:
         db_path = vault_path_abs / "chroma"
-        vault_path_abs.mkdir(parents=True, exist_ok=True)
         db_path.mkdir(parents=True, exist_ok=True)
+        
+        if global_vault:
+            db_path_posix = db_path.as_posix()
+        else:
+            db_path_posix = db_path.relative_to(save_root.parent).as_posix()
 
-        project_root = local_root.parent
-        config["vaults"][vault_name] = {
-            "vault_path": vault_path_abs.relative_to(project_root).as_posix(),
-            "db_path": db_path.relative_to(project_root).as_posix(),
-            "restricted": restricted,
-            "allowed_agents": []
-        }
+    vault_path_final = vault_path_abs.as_posix() if global_vault else vault_path_abs.relative_to(save_root.parent).as_posix()
+
+    config["vaults"][vault_name] = {
+        "type": vault_type.value, 
+        "vault_path": vault_path_final,
+        "db_path": db_path_posix,
+        "restricted": restricted,
+        "allowed_agents": []
+    }
 
     _save_config(data=config, root=save_root)
-
-    return str(vault_path_abs if not global_vault else vault_path), str(_config_file(save_root))
+    return str(vault_path_abs), str(_config_file(save_root))
 
 def get_vaults() -> list[dict]:
     global_config, local_config, _ = _load_config()
@@ -117,6 +107,7 @@ def get_vaults() -> list[dict]:
     for name, data in local_config["vaults"].items():
         result.append({
             "name": name,
+            "type": data.get("type"),
             "scope": "local",
             "vault_path": data.get("vault_path"),
             "db_path": data.get("db_path"),
@@ -127,6 +118,7 @@ def get_vaults() -> list[dict]:
     for name, data in global_config["vaults"].items():
         result.append({
             "name": name,
+            "type": data.get("type"),
             "scope": "global",
             "vault_path": data.get("vault_path"),
             "db_path": data.get("db_path"),
