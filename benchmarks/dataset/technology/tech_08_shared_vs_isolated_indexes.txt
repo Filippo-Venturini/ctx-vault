@@ -1,0 +1,3 @@
+Title: Shared Versus Isolated Indexes
+
+A shared vector index is simple to operate but may require metadata filtering to keep retrieval scoped correctly. Isolated indexes reduce the risk of accidental overlap by separating storage physically or logically. The tradeoff is usually operational complexity versus stronger boundaries.

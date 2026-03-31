@@ -1,0 +1,3 @@
+Title: Token Budgeting in LLM Systems
+
+Large language model applications must manage context windows carefully. Retrieved passages compete with instructions, tool traces, and conversation history for limited token space. Good systems prioritize the most relevant chunks to avoid wasting context on low-value information.

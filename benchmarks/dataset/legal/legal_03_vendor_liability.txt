@@ -1,0 +1,3 @@
+Title: Vendor Liability Clauses
+
+Commercial agreements often include liability limitations for software defects, service outages, or data loss. These clauses determine how responsibility is allocated between provider and customer when failures occur.

@@ -1,0 +1,3 @@
+Title: Authorized Personnel Requirements
+
+Some categories of internal records should only be accessible to explicitly authorized personnel. Authorization must be documented clearly and reviewed periodically to ensure access remains appropriate.

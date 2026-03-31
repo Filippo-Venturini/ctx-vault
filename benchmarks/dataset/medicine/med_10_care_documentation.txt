@@ -1,0 +1,3 @@
+Title: Care Documentation
+
+Care documentation records what was observed, what was discussed, and what actions were recommended. Clear documentation supports continuity across clinicians and future visits.

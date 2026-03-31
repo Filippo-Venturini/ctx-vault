@@ -1,0 +1,3 @@
+Title: Policy Exception Management
+
+Organizations sometimes approve exceptions to standard policies, but those exceptions should be documented and time-limited. Without governance, exceptions can quietly undermine the original control framework.

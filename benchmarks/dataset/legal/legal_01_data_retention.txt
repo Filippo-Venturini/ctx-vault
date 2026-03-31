@@ -1,0 +1,3 @@
+Title: Data Retention Policy
+
+Organizations should define retention periods for internal records, customer communications, and compliance documents. Retention policies help determine how long information must be stored before archival or deletion. Poor retention governance can increase legal and operational risk.

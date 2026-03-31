@@ -1,0 +1,3 @@
+Title: Access Control in AI Systems
+
+AI systems that retrieve internal knowledge need reliable access boundaries. If multiple agents or workflows share infrastructure, retrieval paths must be scoped intentionally. Relying only on conventions or application-level assumptions can create fragile system behavior.

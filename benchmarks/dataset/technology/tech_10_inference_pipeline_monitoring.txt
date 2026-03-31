@@ -1,0 +1,3 @@
+Title: Inference Pipeline Monitoring
+
+Teams often monitor inference systems for latency spikes, retrieval misses, and degraded answer quality. Logging query paths and retrieved context helps debug failures in production. Observability is critical when retrieval influences final model outputs.

@@ -1,0 +1,3 @@
+Title: Information Governance
+
+Information governance covers classification, retention, access, and accountability for internal knowledge assets. Clear governance structures reduce ambiguity around who can use which records and for what purpose.

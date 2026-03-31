@@ -1,0 +1,3 @@
+Title: Clinical History Collection
+
+A clinical history records prior diagnoses, medications, family history, and relevant life events. Good history-taking provides context for interpreting current symptoms and treatment needs.

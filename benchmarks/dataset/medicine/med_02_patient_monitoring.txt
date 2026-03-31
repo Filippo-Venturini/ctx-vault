@@ -1,0 +1,3 @@
+Title: Patient Monitoring
+
+Patient monitoring may include tracking vital signs, symptom progression, medication adherence, and response to treatment. Consistent monitoring helps clinicians identify deterioration earlier.

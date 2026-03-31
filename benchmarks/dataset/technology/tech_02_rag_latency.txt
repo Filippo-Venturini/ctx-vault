@@ -1,0 +1,3 @@
+Title: RAG Pipeline Latency
+
+Retrieval-augmented generation pipelines can become slow when embedding lookup, reranking, and generation are chained together. Latency often comes from network calls, vector search, and prompt assembly. Optimizing retrieval stages is important when user-facing systems need fast answers under load.

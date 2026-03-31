@@ -1,0 +1,3 @@
+Title: Semantic Search Precision
+
+Semantic retrieval should return documents that are conceptually relevant, not merely keyword-adjacent. Precision becomes especially important when multiple topics use similar language. High precision helps keep generated answers grounded in the right evidence.

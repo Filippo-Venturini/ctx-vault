@@ -1,0 +1,3 @@
+Title: Access Control Policy
+
+Access control policies should define which individuals or systems may read, modify, or delete protected records. Strong policies reduce the risk of unauthorized disclosure and make permission boundaries easier to audit.

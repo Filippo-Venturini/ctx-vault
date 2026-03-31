@@ -1,0 +1,94 @@
+[
+  {
+    "query": "How do vector indexes reduce retrieval cost in semantic systems?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_01_vector_indexing", "tech_09_semantic_search_precision"]
+  },
+  {
+    "query": "What causes latency in retrieval augmented generation pipelines?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_02_rag_latency", "tech_10_inference_pipeline_monitoring"]
+  },
+  {
+    "query": "Why is token space limited in LLM applications?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_03_token_budgeting", "tech_04_context_window_limits"]
+  },
+  {
+    "query": "How should long term memory be organized for AI agents?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_05_agent_memory_architecture", "tech_08_shared_vs_isolated_indexes"]
+  },
+  {
+    "query": "What matters when choosing an embedding model for retrieval?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_06_embedding_model_selection", "tech_09_semantic_search_precision"]
+  },
+  {
+    "query": "Why do multi agent systems need scoped retrieval boundaries?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_07_access_control_in_ai_systems", "tech_08_shared_vs_isolated_indexes"]
+  },
+
+  {
+    "query": "How long should confidential business records be kept?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_01_data_retention", "legal_07_record_archival_obligations"]
+  },
+  {
+    "query": "What should an access control policy define?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_02_access_control_policy", "legal_06_authorized_personnel"]
+  },
+  {
+    "query": "How is responsibility handled when a software provider causes damage?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_03_vendor_liability"]
+  },
+  {
+    "query": "How should sensitive internal records be handled?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_04_confidential_record_handling", "legal_08_internal_audit_trails"]
+  },
+  {
+    "query": "What documents help prove compliance during audits?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_05_compliance_documentation", "legal_08_internal_audit_trails"]
+  },
+  {
+    "query": "What is information governance in organizations?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_10_information_governance", "legal_09_policy_exception_management"]
+  },
+
+  {
+    "query": "What are common signs of progressive memory decline in older adults?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_01_memory_decline", "med_05_cognitive_assessment", "med_07_symptom_progression"]
+  },
+  {
+    "query": "Why is patient monitoring important over time?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_02_patient_monitoring", "med_07_symptom_progression"]
+  },
+  {
+    "query": "What should be included in a clinical history?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_03_clinical_history", "med_10_care_documentation"]
+  },
+  {
+    "query": "Why can poor medication adherence affect treatment evaluation?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_04_medication_adherence"]
+  },
+  {
+    "query": "How do clinicians assess cognitive impairment?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_05_cognitive_assessment", "med_09_neurological_observation"]
+  },
+  {
+    "query": "Why are accurate patient records important for continuity of care?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_06_patient_record_management", "med_10_care_documentation"]
+  }
+]

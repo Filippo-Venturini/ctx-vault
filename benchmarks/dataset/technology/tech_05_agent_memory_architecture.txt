@@ -1,0 +1,3 @@
+Title: Agent Memory Architecture
+
+Persistent memory systems for agents often separate short-term working context from long-term semantic storage. The long-term layer stores notes, observations, and retrieved documents that can be queried later by meaning rather than exact keywords.

@@ -1,0 +1,3 @@
+Title: Internal Audit Trails
+
+Audit trails help establish who accessed, changed, or deleted a record and when those actions occurred. They are commonly used to support compliance reviews, investigations, and policy enforcement.

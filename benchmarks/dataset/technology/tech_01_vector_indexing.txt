@@ -1,0 +1,3 @@
+Title: Vector Indexing Tradeoffs
+
+Vector indexing improves semantic retrieval speed by organizing embeddings into structures that reduce search cost. Approximate nearest neighbor methods are often used to balance latency and recall. Teams working on retrieval systems usually accept a small loss in exactness to keep response times low under growing document collections.

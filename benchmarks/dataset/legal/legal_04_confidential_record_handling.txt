@@ -1,0 +1,3 @@
+Title: Confidential Record Handling
+
+Confidential records should be stored, transmitted, and accessed according to documented internal controls. Sensitive material may require restricted handling procedures, auditability, and access logging to reduce exposure risk.

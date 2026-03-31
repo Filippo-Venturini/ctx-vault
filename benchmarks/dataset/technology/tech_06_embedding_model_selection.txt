@@ -1,0 +1,3 @@
+Title: Embedding Model Selection
+
+Embedding models differ in dimensionality, speed, and domain sensitivity. A lightweight model may be sufficient for general notes, while technical corpora often benefit from stronger semantic representations. Retrieval quality depends heavily on how well the embedder captures the language of the documents.

@@ -1,0 +1,3 @@
+Title: Patient Record Management
+
+Patient records should be maintained accurately so clinicians can review prior visits, medications, and test results. Good record management supports continuity of care and reduces avoidable errors.

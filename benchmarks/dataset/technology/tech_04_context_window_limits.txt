@@ -1,0 +1,3 @@
+Title: Context Window Limits
+
+A long context window does not eliminate the need for retrieval discipline. Even when models can read many tokens, irrelevant passages reduce answer quality and increase cost. Teams often use semantic filtering to keep only the most useful supporting material.
