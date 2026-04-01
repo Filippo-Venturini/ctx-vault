@@ -10,7 +10,7 @@ ctxvault_router = APIRouter(prefix="/ctxvault", tags=["CtxVault"])
 
 def check_vault_access(vault_name: str, request: Request):
     agent = request.headers.get("X-CtxVault-Agent")
-    if not vault_router.is_authorized(vault_name, agent):
+    if not vault_router.is_agent_authorized(vault_name, agent):
         raise VaultAccessDeniedError(f"Agent '{agent}' is not authorized to access vault '{vault_name}'")
 
 @ctxvault_router.put(
@@ -24,7 +24,9 @@ async def index(index_request: IndexRequest)-> IndexResponse:
 
         return IndexResponse(indexed_files=indexed_files, skipped_files=skipped_files)
     except VaultNotFoundError as e:
-        raise HTTPException(status_code=400, detail=f"Vault {index_request.vault_name} doesn't exist.")
+        raise HTTPException(status_code=400, detail=str(e))
+    except UnsupportedVaultOperationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @ctxvault_router.post(
     "/query",
@@ -44,7 +46,9 @@ async def query(query_request: QueryRequest, request: Request)-> QueryResponse:
     except EmptyQueryError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except VaultNotFoundError as e:
-        raise HTTPException(status_code=400, detail=f"Vault {query_request.vault_name} doesn't exist.")
+        raise HTTPException(status_code=400, detail=str(e))
+    except UnsupportedVaultOperationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except MissingAgentNameError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except VaultAccessDeniedError as e:
@@ -64,6 +68,8 @@ async def delete(vault_name: str, file_path: str | None = None, request: Request
         return DeleteResponse(deleted_files=deleted_files, skipped_files=skipped_files)
     except VaultNotFoundError as e:
         raise HTTPException(status_code=400, detail=f"Vault {vault_name} doesn't exist.")
+    except UnsupportedVaultOperationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except MissingAgentNameError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except VaultAccessDeniedError as e:
@@ -83,6 +89,8 @@ async def reindex(reindex_request: ReindexRequest, request: Request)-> ReindexRe
         return ReindexResponse(reindexed_files=reindexed_files, skipped_files=skipped_files)
     except VaultNotFoundError as e:
         raise HTTPException(status_code=400, detail=f"Vault {reindex_request.vault_name} doesn't exist.")
+    except UnsupportedVaultOperationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except MissingAgentNameError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except VaultAccessDeniedError as e:
@@ -111,6 +119,8 @@ async def docs(vault_name: str, request: Request)-> ListDocsResponse:
         return ListDocsResponse(vault_name=vault_name, documents=documents)
     except VaultNotFoundError as e:
         raise HTTPException(status_code=400, detail=f"Vault {vault_name} doesn't exist.")
+    except UnsupportedVaultOperationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except MissingAgentNameError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except VaultAccessDeniedError as e:
@@ -133,7 +143,9 @@ async def write(write_request: WriteRequest, request: Request)-> WriteResponse:
         
         return WriteResponse(file_path=write_request.file_path)
     except VaultNotFoundError as e:
-        raise HTTPException(status_code=400, detail=f"Vault {write_request.vault_name} doesn't exist.")
+        raise HTTPException(status_code=400, detail=str(e))
+    except UnsupportedVaultOperationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except MissingAgentNameError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except VaultAccessDeniedError as e:
@@ -142,5 +154,25 @@ async def write(write_request: WriteRequest, request: Request)-> WriteResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except FileAlreadyExistError as e:
         raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@ctxvault_router.get(
+    "/skill",
+    summary="Retrieve skill details and instructions",
+    description="Write a file to a vault and optionally index it for retrieval."
+)
+async def skill(vault_name: str, skill_name: str, request: Request)-> SkillResponse:
+    try: 
+        check_vault_access(vault_name=vault_name, request=request)
+        skill = vault_router.read_skill(vault_name=vault_name, skill_name=skill_name)
+
+        return SkillResponse(skill=skill)
+    except VaultNotFoundError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except VaultAccessDeniedError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except UnsupportedVaultOperationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
