@@ -34,7 +34,7 @@ def _print_vault(v: dict):
     typer.echo("")
 
 @app.command()
-def init(name: str = typer.Argument("my-vault"), type: str = typer.Option(VaultType.SEMANTIC, "--type"), restricted: bool = typer.Option(False, "--restricted"), path: str = typer.Option(None, "--path"), global_vault: bool = typer.Option(False, "--global")):
+def init(name: str = typer.Argument("my-vault"), type: str = typer.Option(VaultType.SEMANTIC.value, "--type"), restricted: bool = typer.Option(False, "--restricted"), path: str = typer.Option(None, "--path"), global_vault: bool = typer.Option(False, "--global")):
     try:
         typer.echo(f"Initializing Context Vault {name}...")
         vault_path, config_path = vault_router.init_vault(vault_name=name, vault_type=type, restricted=restricted, path=path, global_vault=global_vault)

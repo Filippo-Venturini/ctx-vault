@@ -1,3 +1,4 @@
+from ctxvault.models.vaults import VaultType
 from ctxvault.utils.config import create_vault
 import pytest
 from pathlib import Path
@@ -65,7 +66,7 @@ def mock_vault_not_initialized(mock_global_config, tmp_path):
 @pytest.fixture
 def mock_vault_config(mock_global_config):
     vault_name = "test_vault"
-    vault_path, config_path = create_vault(vault_name, False, None, global_vault=True)
+    vault_path, config_path = create_vault(vault_name, VaultType.SEMANTIC, False, None, global_vault=True)
     return Path(vault_path)
 
 @pytest.fixture

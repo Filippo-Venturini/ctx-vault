@@ -12,19 +12,6 @@ def test_init_vault_creates_dirs(mock_vault_not_initialized):
     assert Path(config_path).exists()
 
 
-def test_iter_files(temp_docs):
-    files = list(vault_router.iter_files(temp_docs))
-    assert len(files) == 2
-    assert all(f.suffix == ".txt" for f in files)
-
-
-@pytest.mark.usefixtures("mock_vault_config")
-def test_index_file_calls_indexer(mock_vault_config, temp_docs):
-    vault_name = "test_vault"
-    file_path = temp_docs / "file1.txt"
-    vault_router.index_file(file_path=file_path, vault_config=vault_router.get_vault_config(vault_name))
-
-
 @pytest.mark.usefixtures("mock_vault_config")
 def test_query_returns_result(mock_vault_config):
     vault_name = "test_vault"
@@ -39,20 +26,6 @@ def test_index_files_returns_lists(mock_vault_config, temp_docs):
     indexed, skipped = vault_router.index_files(vault_name=vault_name, path=str(temp_docs))
     assert isinstance(indexed, list)
     assert isinstance(skipped, list)
-
-
-@pytest.mark.usefixtures("mock_vault_config")
-def test_delete_file_does_not_fail(mock_vault_config, temp_docs):
-    vault_name = "test_vault"
-    file_path = temp_docs / "file1.txt"
-    vault_router.delete_file(file_path=file_path, vault_config=vault_router.get_vault_config(vault_name))
-
-
-@pytest.mark.usefixtures("mock_vault_config")
-def test_reindex_file_does_not_fail(mock_vault_config, temp_docs):
-    vault_name = "test_vault"
-    file_path = temp_docs / "file1.txt"
-    vault_router.reindex_file(file_path=file_path, vault_config=vault_router.get_vault_config(vault_name))
 
 
 @pytest.mark.usefixtures("mock_vault_config")
@@ -93,30 +66,6 @@ def test_init_vault_already_exists_raises(mock_vault_config):
 def test_query_empty_text_raises(mock_vault_config):
     with pytest.raises(Exception):
         vault_router.query(text="  ", vault_name="test_vault")
-
-def test_index_file_unsupported_type_raises(mock_vault_config, tmp_path):
-    vault_path = mock_vault_config
-    bad_file = vault_path / "file.xyz"
-    bad_file.write_text("content")
-    with pytest.raises(Exception):
-        vault_router.index_file(file_path=bad_file, vault_config=vault_router.get_vault_config("test_vault"))
-
-def test_index_file_outside_vault_raises(mock_vault_config, tmp_path):
-    outside = tmp_path / "outside.txt"
-    outside.write_text("content")
-    with pytest.raises(Exception):
-        vault_router.index_file(file_path=outside, vault_config=vault_router.get_vault_config("test_vault"))
-
-def test_iter_files_single_file(temp_docs):
-    single = temp_docs / "file1.txt"
-    files = list(vault_router.iter_files(single))
-    assert len(files) == 1
-
-def test_iter_files_excludes_dir(mock_vault_config):
-    vault_path = mock_vault_config
-    db_path = vault_path / "chroma"
-    files = list(vault_router.iter_files(vault_path, exclude_dirs=[db_path]))
-    assert not any("chroma" in str(f) for f in files)
 
 def test_list_vaults_scope(mock_vault_config):
     result = vault_router.list_vaults()

@@ -162,7 +162,7 @@ async def write(write_request: WriteRequest, request: Request)-> WriteResponse:
     summary="Retrieve skill details and instructions",
     description="Write a file to a vault and optionally index it for retrieval."
 )
-async def skill(vault_name: str, skill_name: str, request: Request)-> SkillResponse:
+async def read_skill(vault_name: str, skill_name: str, request: Request)-> SkillResponse:
     try: 
         check_vault_access(vault_name=vault_name, request=request)
         skill = vault_router.read_skill(vault_name=vault_name, skill_name=skill_name)
