@@ -1,13 +1,22 @@
 from pathlib import Path
 from ctxvault.core import indexer
 from ctxvault.core.vaults.base import BaseVault
-from ctxvault.models.documents import DocumentInfo
+from ctxvault.models.documents import SemanticDocumentInfo
 from ctxvault.models.query_result import ChunkMatch, QueryResult
 from ctxvault.core.exceptions import EmptyQueryError, FileOutsideVaultError, UnsupportedFileTypeError
+from ctxvault.models.vaults import VaultOperation
 from ctxvault.utils.text_extraction import SUPPORTED_EXT
-from ctxvault.utils.config import get_vault_config
 
 class SemanticVault(BaseVault):
+    supported_operations = frozenset({
+        VaultOperation.INDEX,
+        VaultOperation.QUERY,
+        VaultOperation.REINDEX,
+        VaultOperation.DELETE,
+        VaultOperation.WRITE,
+        VaultOperation.LIST_DOCUMENTS,
+    })
+
     def index_file(self, file_path:Path, agent_metadata: dict | None = None)-> None:
         from ctxvault.core import indexer
 
@@ -24,7 +33,7 @@ class SemanticVault(BaseVault):
         
         indexed_files = []
         skipped_files = []
-
+        
         for file in self.iter_files(path=base_path, exclude_dirs=[self.db_path]):
             try:
                 self.index_file(file_path=file)
@@ -87,7 +96,7 @@ class SemanticVault(BaseVault):
         ]
         return QueryResult(query=text, results=chunks_match)
 
-    def list_documents(self) -> list[DocumentInfo]:
+    def list_documents(self) -> list[SemanticDocumentInfo]:
         from ctxvault.core import querying
         return querying.list_documents(config=self.config)
     

@@ -1,17 +1,19 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from pathlib import Path
-from ctxvault.models.documents import DocumentInfo
-from ctxvault.models.query_result import ChunkMatch, QueryResult
-from ctxvault.utils.config import attach_agent_to_vault, create_vault, delete_vault, detach_agent_from_vault, get_vault_config, get_vaults, is_authorized, make_public as _make_public
-from ctxvault.core.exceptions import EmptyQueryError, FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, PathOutsideVaultError, UnsupportedFileTypeError
+from ctxvault.models.documents import VaultDocumentInfo
+from ctxvault.models.vaults import VaultOperation
+from ctxvault.utils.config import attach_agent_to_vault, delete_vault, detach_agent_from_vault, is_authorized, make_public as _make_public
+from ctxvault.core.exceptions import FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, PathOutsideVaultError, UnsupportedFileTypeError, UnsupportedVaultOperationError
 from ctxvault.utils.text_extraction import SUPPORTED_EXT
 
 class BaseVault(ABC):
+    supported_operations: frozenset[VaultOperation] = frozenset()
+
     def __init__(self, vault_name: str, config: dict):
         self.vault_name = vault_name
         self.config = config
         self.vault_path = Path(config["vault_path"])
-        self.db_path = Path(config.get("db_path", ""))
+        self.db_path = Path(config.get("db_path")) if config.get("db_path") else None
 
     def _get_base_path(self, path: str | None) -> Path:
         if not path:
@@ -31,10 +33,10 @@ class BaseVault(ABC):
         
         return base_path
     
-    def iter_files(path: Path, exclude_dirs: list[Path] | None = None):
+    def iter_files(self, path: Path, exclude_dirs: list[Path] | None = None):
         if exclude_dirs is None:
             exclude_dirs = []
-
+        
         if path.is_file():
             if not any(path.resolve().is_relative_to(excl) for excl in exclude_dirs):
                 yield path
@@ -48,6 +50,12 @@ class BaseVault(ABC):
                 continue
 
             yield p
+
+    def _require_operation(self, operation: VaultOperation) -> None:
+        if operation not in self.supported_operations:
+            raise UnsupportedVaultOperationError(
+                f"Operation '{operation.value}' is not supported by {self.__class__.__name__}."
+            )
     
     def is_agent_authorized(self, agent_name: str) -> bool:
         return is_authorized(vault_name=self.vault_name, agent_name=agent_name)
@@ -111,9 +119,10 @@ class BaseVault(ABC):
         abs_path.parent.mkdir(parents=True, exist_ok=True)
         abs_path.write_text(content, encoding="utf-8")
 
-    def list_documents(self)-> list[DocumentInfo]:
-        #TODO different info between semantic and skills
+    @abstractmethod
+    def index_files(self, path: str | None = None) -> tuple[list[str], list[str]]:
+        pass
 
-        from ctxvault.core import querying
-
-        return querying.list_documents(config=self.config)
+    @abstractmethod
+    def list_documents(self)-> list[VaultDocumentInfo]:
+        pass

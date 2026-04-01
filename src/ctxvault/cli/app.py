@@ -1,35 +1,36 @@
 from pathlib import Path
+from ctxvault.models.documents import SemanticDocumentInfo, SkillDocumentInfo
 from ctxvault.models.vaults import VaultType
 import typer
 from ctxvault.core import vault_router
-from ctxvault.core.exceptions import PathOutsideVaultError, VaultAlreadyExistsError, VaultNotFoundError
+from ctxvault.core.exceptions import PathOutsideVaultError, VaultAlreadyExistsError, VaultNotFoundError, VaultTypeNotValidError
 
 app = typer.Typer()
 
 def _print_vault(v: dict):
-    allowed_agents = v.get("allowed_agents")
+    name = v['name']
+    vault_type = v.get("type", "semantic")
     is_restricted = v.get("restricted", False)
+    allowed_agents = v.get("allowed_agents", [])
 
-    vault_type = v.get("type")
+    typer.secho(f"  {name:<20}", bold=True, nl=False)
 
-    if not vault_type or vault_type == "semantic":
-        typer.secho(f"> {v['name']} [SEMANTIC]", fg=typer.colors.CYAN, bold=True)
+    if vault_type == "skill":
+        typer.secho("[SKILL]    ", fg=typer.colors.MAGENTA, bold=True, nl=False)
     else:
-        typer.secho(f"> {v['name']} [SKILL]", fg=typer.colors.MAGENTA, bold=True)
+        typer.secho("[SEMANTIC] ", fg=typer.colors.CYAN, bold=True, nl=False)
 
     if is_restricted:
-        typer.secho(f"\n[RESTRICTED]", fg=typer.colors.YELLOW, bold=True)
-    else:
-        typer.secho(f"\n[PUBLIC]", fg=typer.colors.GREEN, bold=True)
-
-    typer.echo(f"  path:  {v['vault_path']}")
-
-    if is_restricted:
+        typer.secho("[RESTRICTED]", fg=typer.colors.YELLOW, bold=True, nl=False)
         if allowed_agents:
-            typer.echo(f"  allowed agents: {', '.join(allowed_agents)}")
+            typer.secho(f"  agents: {', '.join(allowed_agents)}", fg=typer.colors.YELLOW, nl=False)
         else:
-            typer.secho(f"  allowed agents: none authorized yet", fg=typer.colors.YELLOW)
+            typer.secho("  agents: none authorized yet", fg=typer.colors.YELLOW, nl=False)
+    else:
+        typer.secho("[PUBLIC]", fg=typer.colors.GREEN, bold=True, nl=False)
 
+    typer.echo("")
+    typer.secho(f"  {'path:':<20}{v['vault_path']}", fg=typer.colors.BRIGHT_BLACK)
     typer.echo("")
 
 @app.command()
@@ -40,9 +41,8 @@ def init(name: str = typer.Argument("my-vault"), type: str = typer.Option(VaultT
         typer.secho("Context Vault initialized succesfully!", fg=typer.colors.GREEN, bold=True)
         typer.echo(f"Context Vault path: {vault_path}")
         typer.echo(f"Config file path: {config_path}")
-    except VaultAlreadyExistsError as e:
-        typer.secho("Warning: Context Vault already initialized in this path!", fg=typer.colors.YELLOW, bold=True)
-        typer.echo(f"Error during initialization: {e.existing_path}")
+    except Exception as e:
+        typer.secho(f"Error during initialization: {e}", fg=typer.colors.RED, bold=True)
         raise typer.Exit(1)
 
 @app.command()
@@ -141,12 +141,12 @@ def vaults():
     typer.secho(f"\nFound {len(vaults_list)} vaults ({len(local_vaults)} local, {len(global_vaults)} global)\n", fg=typer.colors.GREEN, bold=True)
 
     if local_vaults:
-        typer.secho("── local ──────────────────────────", fg=typer.colors.CYAN, bold=True)
+        typer.secho("── local ────────────────────────────────────────────────────────", fg=typer.colors.CYAN, bold=True)
         for v in local_vaults:
             _print_vault(v)
 
     if global_vaults:
-        typer.secho("── global ─────────────────────────", fg=typer.colors.CYAN, bold=True)
+        typer.secho("── global ───────────────────────────────────────────────────────", fg=typer.colors.CYAN, bold=True)
         for v in global_vaults:
             _print_vault(v)
 
@@ -159,9 +159,22 @@ def docs(name: str = typer.Argument("my-vault")):
         typer.secho(f"\nFound {len(documents)} documents in '{name}'\n", fg=typer.colors.GREEN, bold=True)
 
         for i, doc in enumerate(documents, 1):
-            filename = Path(doc.source).name
-            typer.echo(f"  {i}. {filename}")
-            typer.secho(f"     {doc.filetype} · {doc.chunks_count} chunks", fg=typer.colors.BRIGHT_BLACK)
+            typer.echo(f"  {i}. ", nl=False)
+
+            if isinstance(doc, SemanticDocumentInfo):
+                filename = Path(doc.source).name
+                typer.secho(f"{filename}", bold=True)
+
+                info_line = f"     {doc.filetype} · {doc.chunks_count} chunks · ID: {doc.doc_id}"
+                typer.secho(info_line, fg=typer.colors.BRIGHT_BLACK)
+
+            elif isinstance(doc, SkillDocumentInfo):
+                typer.secho(f"{doc.skill_name}", bold=True)
+                typer.secho(f"     Type: Skill (.md) · Last Mod: {doc.last_modified}", fg=typer.colors.BRIGHT_BLACK)
+                if doc.description:
+                    typer.secho(f"     Description: {doc.description}", fg=typer.colors.CYAN, italic=True)
+
+            typer.echo("")
 
     except Exception as e:
         typer.secho(f"Error during document listing: {e}", fg=typer.colors.RED, bold=True)
@@ -202,6 +215,32 @@ def publish(vault_name: str = typer.Argument("my-vault")):
     except Exception as e:
         typer.secho(f"Error during vault publishing: {e}", fg=typer.colors.RED, bold=True)
         raise typer.Exit(1)
+
+@app.command()
+def skill(vault_name: str = typer.Argument(...), skill_name: str = typer.Argument(...)):
+    try:
+        skill = vault_router.read_skill(vault_name=vault_name, skill_name=skill_name)
+
+        typer.echo("-" * 100)
+        typer.secho(f"SKILL: {skill.name}", fg=typer.colors.CYAN, bold=True)
+        if skill.description:
+            typer.secho(f"Description: {skill.description}", fg=typer.colors.YELLOW)
+        typer.echo("-" * 100)
+
+        if skill.metadata:
+            for key, value in skill.metadata.items():
+                if key not in ['name', 'description']:
+                    typer.secho(f"{key}: ", fg=typer.colors.BRIGHT_BLACK, nl=False)
+                    typer.echo(f"{value}")
+            typer.echo("-" * 100)
+
+        typer.echo(skill.instructions)
+        typer.echo("")
+
+    except Exception as e:
+        typer.secho(f"Error reading skill: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
+
 
 def main():
     app()

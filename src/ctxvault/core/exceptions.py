@@ -48,6 +48,14 @@ class VaultAccessDeniedError(Exception):
     """Raised when agents try to access a restricted vault they are not authorized to access."""
     pass
 
+class UnsupportedVaultOperationError(Exception):
+    """Raised when trying to perform an unsupported operation on a specific vault type."""
+    pass
+
+class SkillNotFoundError(Exception):
+    """Raised when trying to read a skill not present in the vault."""
+    pass
+
 class MissingAgentNameError(Exception):
     """Raised when agents try to access a restricted vault without providing an agent name."""
     pass

@@ -1,8 +1,8 @@
 from ctxvault.core.embedding import embed_list
-from ctxvault.models.documents import DocumentInfo
+from ctxvault.models.documents import SemanticDocumentInfo
 from ctxvault.storage import chroma_store
 
-def build_documents_from_metadatas(metadatas)-> list[DocumentInfo]:
+def build_documents_from_metadatas(metadatas)-> list[SemanticDocumentInfo]:
     acc = {}
 
     for row in metadatas:
@@ -19,7 +19,7 @@ def build_documents_from_metadatas(metadatas)-> list[DocumentInfo]:
             acc[doc_id] = (source, filetype, count + 1)
 
     return [
-        DocumentInfo(
+        SemanticDocumentInfo(
             doc_id=doc_id,
             source=source,
             filetype=filetype,
@@ -32,7 +32,7 @@ def query(query_txt: str, config: dict, filters: dict | None = None)-> dict:
     query_embedding = embed_list(chunks=[query_txt])
     return chroma_store.query(query_embedding=query_embedding, config=config, filters=filters)
 
-def list_documents(config: dict)-> list[DocumentInfo]:
+def list_documents(config: dict)-> list[SemanticDocumentInfo]:
     metadatas = chroma_store.get_all_metadatas(config=config)
     return build_documents_from_metadatas(metadatas=metadatas)
     

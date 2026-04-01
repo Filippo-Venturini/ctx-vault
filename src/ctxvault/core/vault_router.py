@@ -1,9 +1,9 @@
 from ctxvault.core.exceptions import VaultTypeNotValidError
 from ctxvault.core.vaults.semantic import SemanticVault
 from ctxvault.core.vaults.skill import SkillVault
-from ctxvault.models.documents import DocumentInfo
+from ctxvault.models.documents import VaultDocumentInfo
 from ctxvault.models.query_result import QueryResult
-from ctxvault.models.vaults import VaultType
+from ctxvault.models.vaults import Skill, VaultOperation, VaultType
 from ctxvault.utils.config import create_vault, get_vault_config, get_vaults
 
 def _get_vault(vault_name: str):
@@ -31,7 +31,7 @@ def is_agent_authorized(vault_name: str, agent_name: str) -> bool:
 
 def attach_agent(vault_name: str, agent_name: str) -> None:
     vault = _get_vault(vault_name=vault_name)
-    vault.attach_agent(vault_name=vault_name, agent_name=agent_name)
+    vault.attach_agent(agent_name=agent_name)
 
 def detach_agent(vault_name: str, agent_name: str) -> None:
     vault = _get_vault(vault_name=vault_name)
@@ -57,23 +57,38 @@ def init_vault(vault_name: str, vault_type: str | VaultType = VaultType.SEMANTIC
 
 def index_files(vault_name: str, path: str | None = None)-> tuple[list[str], list[str]]:
     vault = _get_vault(vault_name=vault_name)
+    vault._require_operation(VaultOperation.INDEX)
     return vault.index_files(path=path)
 
 def query(text: str, vault_name: str, filters: dict | None = None)-> QueryResult:
     vault = _get_vault(vault_name=vault_name)
+    vault._require_operation(VaultOperation.QUERY)
     return vault.query(text=text, filters=filters)
 
 def delete_files(vault_name: str, path: str | None = None)-> tuple[list[str], list[str]]:
     vault = _get_vault(vault_name=vault_name)
+    vault._require_operation(VaultOperation.DELETE)
     return vault.delete_files(path=path)
 
 def reindex_files(vault_name: str, path: str | None = None)-> tuple[list[str], list[str]]:
     vault = _get_vault(vault_name=vault_name)
+    vault._require_operation(VaultOperation.REINDEX)
     return vault.reindex_files(path=path)
 
-def list_documents(vault_name: str)-> list[DocumentInfo]:
+def write_file(vault_name: str, file_path: str, content: str, overwrite: bool = True, agent_metadata: dict | None = None)-> None:
     vault = _get_vault(vault_name=vault_name)
+    vault._require_operation(VaultOperation.WRITE)
+    vault.write_file(file_path=file_path, content=content, overwrite=overwrite, agent_metadata=agent_metadata)
+
+def list_documents(vault_name: str)-> list[VaultDocumentInfo]:
+    vault = _get_vault(vault_name=vault_name)
+    vault._require_operation(VaultOperation.LIST_DOCUMENTS)
     return vault.list_documents()
+
+def read_skill(vault_name: str, skill_name: str)-> Skill:
+    vault = _get_vault(vault_name=vault_name)
+    vault._require_operation(VaultOperation.READ_SKILL)
+    return vault.read_skill(skill_name=skill_name)
 
 def list_vaults()-> list[dict]:
     return get_vaults()

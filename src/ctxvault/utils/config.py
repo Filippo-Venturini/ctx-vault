@@ -28,7 +28,7 @@ def _resolve_local_paths(local_config: dict, local_root: Path) -> dict:
     for vault_data in local_config["vaults"].values():
         if not Path(vault_data["vault_path"]).is_absolute():
             vault_data["vault_path"] = str((project_root / vault_data["vault_path"]).resolve())
-            vault_data["db_path"] = str((project_root / vault_data["db_path"]).resolve())
+            vault_data["db_path"] = str((project_root / vault_data["db_path"]).resolve()) if vault_data["db_path"] else None
     return local_config
 
 def _load_config() -> tuple[dict, dict, Path | None]:
