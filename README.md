@@ -21,11 +21,11 @@
 
 ## What is CtxVault?
 
-Most agent frameworks treat memory as an afterthought — a shared vector store queried with metadata filters, where isolation depends entirely on configuration staying correct. It works until it doesn't: multiple agents with different domains, a growing knowledge base, and the wrong document surfaces in the wrong place.
+Most agent frameworks treat memory as an afterthought — a shared vector store where isolation depends on configuration staying correct and everything, facts and procedures alike, gets embedded into the same undifferentiated index. The agent cannot tell what it knows from how it should act.
 
-CtxVault is built around a different primitive. Memory is organized into **vaults** — self-contained, directory-backed units, each with its own documents and its own vector index. Isolation is structural. The topology is defined explicitly: one vault per agent, a shared knowledge base across multiple workflows, or any combination — with access control that determines exactly which agents can reach which vault.
+CtxVault is built around a different primitive. Memory is organized into **vaults** — self-contained, directory-backed units with explicit types. A semantic vault holds documents and a vector index, queryable by meaning: the agent's **semantic memory**. A skill vault holds skills that shape how the agent behaves: its **procedural memory**. Isolation is structural, the topology is defined explicitly — one vault per agent, a shared knowledge base, private skills for a specific role, or any combination — with access control that determines exactly which agents can reach which vault.
 
-The result is a memory layer that behaves like real infrastructure: composable, observable, persistent and entirely local.
+The result is a memory layer that behaves like real infrastructure: typed, composable, observable, persistent and entirely local.
 
 <div align="center">
   <img 
@@ -38,6 +38,22 @@ The result is a memory layer that behaves like real infrastructure: composable, 
 ---
 
 ## Core Principles
+
+### Typed memory: semantic and procedural
+
+Classical cognitive architectures — from [ACT-R (Anderson et al., 2004)](https://en.wikipedia.org/wiki/ACT-R) to [CoALA (Sumers et al., 2024)](https://arxiv.org/abs/2309.02427) — separate an agent's long-term memory into distinct modules: semantic memory for world knowledge, and procedural memory for skills and behavioral rules. Most agent frameworks ignore this distinction and store everything in a single vector index.
+
+In CtxVault, the separation is structural. A **semantic vault** holds documents, indexes them into a vector store, and supports retrieval by meaning — it is the agent's knowledge base. A **skill vault** holds natural-language procedures with explicit names and descriptions — it is the agent's behavioral repertoire. The agent queries one to know *what*, and reads the other to know *how*.
+
+Both vault types share the same infrastructure primitives: public or restricted, local or global, composable in any topology. The difference is what they store and how the agent uses it.
+
+<div align="center">
+  <img 
+    src="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/typed_memory_schema.svg"
+    alt="Typed memory: an agent queries a semantic vault for knowledge and reads a skill vault for behavioral instructions, combining both into output"
+    width="1200"
+  >
+</div>
 
 ### Structural isolation and access control
 
@@ -120,6 +136,7 @@ CtxVault exposes the same vault layer through three interfaces. Use whichever fi
 |--|----------|-------------------|------------------|------|
 | Vault isolation | ✓ | ✗ — you build it | ✗ | ✗ |
 | Access control | ✓ | ✗ — you build it | ✗ | ✗ |
+| Typed memory (semantic + procedural) | ✓ | ✗ | ✗ | ✗ |
 | Agent-written memory | ✓ | ✗ — you build it | Partial | Partial |
 | Human CLI observability | ✓ | ✗ | ✗ | ✗ |
 | Local-first | ✓ | ✓ | ✓ | ✗ (cloud) |
@@ -137,6 +154,7 @@ Three scenarios — each with full code and setup instructions.
 | 🔴 | [**Multi-Agent Isolation**](examples/02-multi-agent-isolation/) | Two agents, two vaults. Each agent has no retrieval path to the other's vault — isolation enforced at the infrastructure layer, not through metadata filtering. ~200 lines.|
 | 🔵 | [**Persistent Memory Agent**](examples/03-persistent-memory/) | An agent that recalls context across sessions using semantic queries. "financial constraints" retrieves "cut cloud costs by 15%" written three days prior. |
 | 🟡 | [**Composed Topology**](examples/04-composed-topology/) | Three agents, five vaults — private, shared between a subset, and public. A tiered support system where access boundaries reflect organizational boundaries. |
+| 🟣 | [**Procedural Memory Agent**](examples/05-procedural-memory-agent/) | One agent, two vault types — semantic and skill — integrated via MCP. Retrieves knowledge for *what* to say and skills for *how* to say it. | |
 
 ---
 
@@ -280,22 +298,26 @@ All commands require a vault name. Default vault location: `~/.ctxvault/vaults/<
 #### `init`
 Initialize a new vault. Vaults are public by default — any agent can access them.
 Pass `--restricted` to create a restricted vault, accessible only to explicitly
-attached agents.
+attached agents. Pass `--type skill` to create a skill vault for procedural memory
+instead of the default semantic vault.
+
 ```bash
-ctxvault init <name> [--path <path>] [--global] [--restricted]
+ctxvault init <name> [--type <type>] [--path <path>] [--global] [--restricted]
 ```
 
 **Arguments:**
 - `<name>` - Vault name (required)
+- `--type <type>` - Vault type: `semantic` or `skill` (optional, default: `semantic`)
 - `--path <path>` - Custom vault location (optional, default: `~/.ctxvault/vaults/<name>`)
 - `--global` - Create a global vault in ~/.ctxvault, available from anywhere on the machine
 - `--restricted` - Create vault as restricted (optional, default: public)
 
+
 **Example:**
 ```bash
-ctxvault init my-vault                      # local vault, pinned to current directory
-ctxvault init my-vault --path ./databases   # local vault, data under ./databases/vaults/my-vault
-ctxvault init my-vault --global             # global vault in ~/.ctxvault
+ctxvault init my-vault                          # semantic vault (default)
+ctxvault init my-vault --type skill             # skill vault for procedural memory
+ctxvault init my-vault --global --type skill    # global skill vault
 ctxvault init my-vault --restricted
 ```
 
@@ -355,7 +377,9 @@ ctxvault publish my-vault
 ---
 
 #### `index`
-Index documents in vault.
+
+Index a vault. On a **semantic** vault, this parses documents, generates embeddings, and stores them in the vector index. On a **skill** vault, this scans all .md files, reads their frontmatter, and rebuilds the skill index.
+
 ```bash
 ctxvault index <vault> [--path <path>]
 ```
@@ -373,7 +397,7 @@ ctxvault index my-vault --path docs/papers/
 ---
 
 #### `query`
-Perform semantic search.
+Perform semantic search on a **semantic** vault.
 ```bash
 ctxvault query <vault> <text>
 ```
@@ -390,7 +414,7 @@ ctxvault query my-vault "attention mechanisms"
 ---
 
 #### `docs`
-List all indexed documents in a vault.
+List all indexed documents in a **semantic** vault.
 ```bash
 ctxvault docs <vault>
 ```
@@ -410,6 +434,73 @@ Found 2 documents in 'my-vault'
 
   2. notes.md
      .md · 3 chunks
+```
+
+---
+
+#### `skills`
+
+List all indexed skills in a skill vault.
+
+```bash
+ctxvault skills <vault>
+```
+
+**Arguments:**
+- `<vault>` - Vault name (required, must be a skill vault)
+
+**Example:**
+```bash
+ctxvault skills comms-skills
+```
+```
+Found 3 skills in 'comms-skills'
+
+  1. Weekly Engineering Update
+     Type: Skill (.md) · Last Mod: 2026-03-15T10:30:00
+     Description: How to write the weekly engineering status update for stakeholders
+
+  2. Company Newsletter Contribution
+     Type: Skill (.md) · Last Mod: 2026-03-15T10:30:00
+     Description: How to write an engineering section for the monthly company newsletter
+
+  3. FAQ Response
+     Type: Skill (.md) · Last Mod: 2026-03-15T10:30:00
+     Description: How to write answers to frequently asked questions from employees
+```
+
+---
+
+#### `skill`
+
+Read a specific skill from a skill vault, displaying its name, description, metadata, and full instructions.
+
+```bash
+ctxvault skill <vault> <skill_name>
+```
+
+**Arguments:**
+- `<vault>` - Vault name (required, must be a skill vault)
+- `<skill_name>` - Skill name as defined in the frontmatter (required)
+
+**Example:**
+```bash
+ctxvault skill comms-skills "Weekly Engineering Update"
+```
+```
+----------------------------------------------------------------------------------------------------
+SKILL: Weekly Engineering Update
+Description: How to write the weekly engineering status update for stakeholders
+----------------------------------------------------------------------------------------------------
+
+You are writing the weekly engineering update...
+
+## Required structure
+...
+
+## Hard rules
+- Never exceed 250 words.
+- Never start with a greeting.
 ```
 
 ---
@@ -435,7 +526,7 @@ ctxvault delete my-vault --purge                # removes the vault entirely
 ---
 
 #### `reindex`
-Re-index documents in a vault.
+Re-index documents in a **semantic** vault.
 ```bash
 ctxvault reindex <vault> [--path <path>]
 ```
@@ -453,7 +544,8 @@ ctxvault reindex my-vault --path docs/
 ---
 
 #### `vaults`
-List all vaults with their paths and access configuration.
+List all vaults with their paths, types, and access configuration.
+
 ```bash
 ctxvault vaults
 ```
@@ -466,16 +558,15 @@ ctxvault vaults
 Found 3 vaults (1 local, 2 global)
 
 ── local ──────────────────────────
-> project-vault [PUBLIC]
-  path:  /my-project/.ctxvault/vaults/project-vault
+  project-vault       [SEMANTIC] [PUBLIC]
+  path:               /my-project/.ctxvault/vaults/project-vault
 
 ── global ─────────────────────────
-> atlas-vault [RESTRICTED]
-  path:  ~/.ctxvault/vaults/atlas-vault
-  allowed agents: atlas-agent
+  atlas-vault         [SEMANTIC] [RESTRICTED]  agents: atlas-agent
+  path:               ~/.ctxvault/vaults/atlas-vault
 
-> research-vault [PUBLIC]
-  path:  ~/.ctxvault/vaults/research-vault
+  comms-skills        [SKILL]    [PUBLIC]
+  path:               ~/.ctxvault/vaults/comms-skills
 ```
 
 ---
@@ -502,28 +593,83 @@ Found 3 vaults (1 local, 2 global)
 - `publish` reverts a restricted vault to public
 - Access is enforced server-side on every request — not in application code
 
+**Vault types:**
+- CtxVault supports two vault types, reflecting the distinction between semantic and procedural memory
+- A **semantic vault** (`--type semantic`, default) stores documents and a vector index for retrieval by meaning
+- A **skill vault** (`--type skill`) stores natural-language procedures that shape agent behavior
+- Both types support the same access control and topology primitives
+
+| Command   | Semantic vault | Skill vault |
+|-----------|----------------|-------------|
+| `init`    | ✓              | ✓           |
+| `index`   | ✓              | ✓           |
+| `query`   | ✓              | ✗           |
+| `docs`    | ✓              | ✗           |
+| `skills`  | ✗              | ✓           |
+| `skill`   | ✗              | ✓           |
+| `reindex` | ✓              | ✗           |
+| `delete`  | ✓              | ✗           |
+| `vaults`  | ✓              | ✓           |
+| `attach`  | ✓              | ✓           |
+| `detach`  | ✓              | ✓           |
+| `publish` | ✓              | ✓           |
+
+Skills are `.md` files with YAML frontmatter defining the skill's name and description, followed by the instructions in markdown. You can create them manually or let an agent write them via the API or MCP server.
+
+```markdown
+---
+name: Weekly Engineering Update
+description: How to write the weekly engineering status update for stakeholders
+---
+
+You are writing the weekly engineering update...
+
+## Required structure
+...
+
+## Hard rules
+- Never exceed 250 words.
+- Never start with a greeting.
+```
+
+Drop the file into a skill vault and run `ctxvault index <vault>` — the skill is immediately available to any agent that queries the vault.
+
+---
+
 ---
 
 ### API Reference
 
 **Base URL:** `http://127.0.0.1:8000/ctxvault`
 
+**Semantic vault endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/query` | POST | Semantic search on a semantic vault |
+| `/docs` | GET | List indexed documents in a semantic vault |
+| `/docs/write` | POST | Write and index a new document |
+| `/delete` | DELETE | Remove document from a semantic vault |
+| `/reindex` | PUT | Re-index documents in a semantic vault |
+
+**Skill vault endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/skills` | GET | List available skills in a skill vault |
+| `/skill` | GET | Read a skill's instructions |
+| `/skills/write` | POST | Write a new skill to a skill vault |
+
+**Shared endpoints:**
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/index` | PUT | Index entire vault or specific path |
-| `/query` | POST | Semantic search |
-| `/write` | POST | Write and index new file |
-| `/docs` | GET | List indexed documents |
-| `/delete` | DELETE | Remove document from vault |
-| `/reindex` | PUT | Re-index entire vault or specific path |
 | `/vaults` | GET | List all initialized vaults |
 
 **Agent authorization:**
 
-Requests to `/query`, `/write`, `/docs`, `/delete`, and `/reindex` on a restricted
-vault require the `X-CtxVault-Agent` header. The value must match an agent name
-attached to that vault via `ctxvault attach`. Requests without the header, or with
-an unrecognized agent name, return `403`.
+Requests to restricted vaults require the `X-CtxVault-Agent` header. The value must match an agent name attached to that vault via `ctxvault attach`. Requests without the header, or with an unrecognized agent name, return `403`.
 ```http
 X-CtxVault-Agent: my-agent
 ```
@@ -534,8 +680,7 @@ requests.post("http://127.0.0.1:8000/ctxvault/query",
 )
 ```
 
-Requests to public vaults do not require the header. `/init` and `/vaults` never
-require it.
+Requests to public vaults do not require the header. `/index` and `/vaults` never require it.
 
 **Interactive documentation:** Start the server and visit `http://127.0.0.1:8000/docs`
 
@@ -549,9 +694,11 @@ require it.
 - [x] Agent write API
 - [x] MCP server support
 - [x] Access control
+- [x] Typed memory (semantic + procedural vaults)
+- [ ] Episodic memory (session logs, interaction history)
+- [ ] Graph-backed semantic memory
 - [ ] File watcher / auto-sync
 - [ ] Context pruning
-- [ ] Configurable embedding models
 
 ---
 
