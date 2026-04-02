@@ -118,7 +118,7 @@ async def docs(vault_name: str, request: Request)-> ListDocsResponse:
         documents = vault_router.list_documents(vault_name=vault_name)
         return ListDocsResponse(vault_name=vault_name, documents=documents)
     except VaultNotFoundError as e:
-        raise HTTPException(status_code=400, detail=f"Vault {vault_name} doesn't exist.")
+        raise HTTPException(status_code=400, detail=str(e))
     except UnsupportedVaultOperationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except MissingAgentNameError as e:
@@ -156,6 +156,26 @@ async def write(write_request: WriteRequest, request: Request)-> WriteResponse:
         raise HTTPException(status_code=409, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@ctxvault_router.get(
+    "/skills",
+    summary="List vault skills",
+    description="Return all the skills available in the specified vault."
+)
+async def docs(vault_name: str, request: Request)-> ListSkillsResponse:
+    try:
+        check_vault_access(vault_name=vault_name, request=request)
+
+        skills = vault_router.list_skills(vault_name=vault_name)
+        return ListSkillsResponse(vault_name=vault_name, skills=skills)
+    except VaultNotFoundError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except UnsupportedVaultOperationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except MissingAgentNameError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except VaultAccessDeniedError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     
 @ctxvault_router.get(
     "/skill",

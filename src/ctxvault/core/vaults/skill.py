@@ -13,7 +13,7 @@ class SkillVault(BaseVault):
     supported_operations = frozenset({
         VaultOperation.INDEX,
         VaultOperation.WRITE,
-        VaultOperation.LIST_DOCUMENTS,
+        VaultOperation.LIST_SKILLS,
         VaultOperation.READ_SKILL,
     })
 
@@ -88,7 +88,7 @@ class SkillVault(BaseVault):
         }
         self._save_index(index)
 
-    def list_documents(self) -> list[SkillDocumentInfo]:
+    def list_skills(self) -> list[SkillDocumentInfo]:
         index = self._load_index()
         result = []
         for entry in index.values():

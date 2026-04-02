@@ -1,4 +1,4 @@
-from ctxvault.models.documents import VaultDocumentInfo
+from ctxvault.models.documents import SemanticDocumentInfo, SkillDocumentInfo
 from ctxvault.models.query_result import ChunkMatch
 from ctxvault.models.vaults import Skill, VaultType
 from pydantic import BaseModel
@@ -51,7 +51,11 @@ class ListVaultsResponse(BaseModel):
 
 class ListDocsResponse(BaseModel):
     vault_name: str
-    documents: list[VaultDocumentInfo]
+    documents: list[SemanticDocumentInfo]
+
+class ListSkillsResponse(BaseModel):
+    vault_name: str
+    skills: list[SkillDocumentInfo]
 
 class AgentMetadata(BaseModel):
     generated_by: str

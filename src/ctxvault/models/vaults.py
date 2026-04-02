@@ -17,6 +17,7 @@ class VaultOperation(str, Enum):
     DELETE = "delete"
     WRITE = "write"
     LIST_DOCUMENTS = "list_documents"
+    LIST_SKILLS = "list_skills"
     READ_SKILL = "read_skill"
     
 class Skill(BaseModel):

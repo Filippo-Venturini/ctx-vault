@@ -80,6 +80,17 @@ def list_docs(vault_name: str) -> ListDocsResponse:
         raise ValueError(f"Vault {vault_name} doesn't exist.")
     except UnsupportedVaultOperationError as e:
         raise ValueError(e)
+    
+@mcp.tool(description="List all available skills inside a specific vault. Use this to understand what skills are available before trying to fetch one.")
+def list_skills(vault_name: str) -> ListSkillsResponse:
+    try:        
+        check_access(vault_name, AGENT_ID)
+        skills = vault_router.list_skills(vault_name=vault_name)
+        return ListSkillsResponse(vault_name=vault_name, skills=skills)
+    except VaultNotFoundError as e:
+        raise ValueError(f"Vault {vault_name} doesn't exist.")
+    except UnsupportedVaultOperationError as e:
+        raise ValueError(e)
 
 @mcp.tool(description="")
 def read_skill(vault_name: str, skill_name: str)-> SkillResponse:

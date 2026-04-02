@@ -160,19 +160,11 @@ def docs(name: str = typer.Argument("my-vault")):
 
         for i, doc in enumerate(documents, 1):
             typer.echo(f"  {i}. ", nl=False)
+            filename = Path(doc.source).name
+            typer.secho(f"{filename}", bold=True)
 
-            if isinstance(doc, SemanticDocumentInfo):
-                filename = Path(doc.source).name
-                typer.secho(f"{filename}", bold=True)
-
-                info_line = f"     {doc.filetype} · {doc.chunks_count} chunks · ID: {doc.doc_id}"
-                typer.secho(info_line, fg=typer.colors.BRIGHT_BLACK)
-
-            elif isinstance(doc, SkillDocumentInfo):
-                typer.secho(f"{doc.skill_name}", bold=True)
-                typer.secho(f"     Type: Skill (.md) · Last Mod: {doc.last_modified}", fg=typer.colors.BRIGHT_BLACK)
-                if doc.description:
-                    typer.secho(f"     Description: {doc.description}", fg=typer.colors.CYAN, italic=True)
+            info_line = f"     {doc.filetype} · {doc.chunks_count} chunks · ID: {doc.doc_id}"
+            typer.secho(info_line, fg=typer.colors.BRIGHT_BLACK)
 
             typer.echo("")
 
@@ -214,6 +206,27 @@ def publish(vault_name: str = typer.Argument("my-vault")):
         typer.secho(f"Vault {vault_name} is now public!", fg=typer.colors.GREEN, bold=True)
     except Exception as e:
         typer.secho(f"Error during vault publishing: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
+
+@app.command()
+def skills(name: str = typer.Argument("my-vault")):
+    try:
+        skills = vault_router.list_skills(vault_name=name)
+
+        typer.secho(f"\nFound {len(skills)} skills in '{name}'\n", fg=typer.colors.GREEN, bold=True)
+
+        for i, skill in enumerate(skills, 1):
+            typer.echo(f"  {i}. ", nl=False)
+
+            typer.secho(f"{skill.skill_name}", bold=True)
+            typer.secho(f"     Type: Skill (.md) · Last Mod: {skill.last_modified}", fg=typer.colors.BRIGHT_BLACK)
+            if skill.description:
+                typer.secho(f"     Description: {skill.description}", fg=typer.colors.CYAN, italic=True)
+
+            typer.echo("")
+
+    except Exception as e:
+        typer.secho(f"Error during document listing: {e}", fg=typer.colors.RED, bold=True)
         raise typer.Exit(1)
 
 @app.command()

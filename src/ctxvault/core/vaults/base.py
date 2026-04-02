@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from ctxvault.models.documents import VaultDocumentInfo
 from ctxvault.models.vaults import VaultOperation
 from ctxvault.utils.config import attach_agent_to_vault, delete_vault, detach_agent_from_vault, is_authorized, make_public as _make_public
 from ctxvault.core.exceptions import FileAlreadyExistError, FileOutsideVaultError, FileTypeNotPresentError, PathOutsideVaultError, UnsupportedFileTypeError, UnsupportedVaultOperationError
@@ -121,8 +120,4 @@ class BaseVault(ABC):
 
     @abstractmethod
     def index_files(self, path: str | None = None) -> tuple[list[str], list[str]]:
-        pass
-
-    @abstractmethod
-    def list_documents(self)-> list[VaultDocumentInfo]:
         pass

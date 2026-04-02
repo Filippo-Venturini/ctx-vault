@@ -1,7 +1,7 @@
 from ctxvault.core.exceptions import VaultTypeNotValidError
 from ctxvault.core.vaults.semantic import SemanticVault
 from ctxvault.core.vaults.skill import SkillVault
-from ctxvault.models.documents import VaultDocumentInfo
+from ctxvault.models.documents import SemanticDocumentInfo, SkillDocumentInfo
 from ctxvault.models.query_result import QueryResult
 from ctxvault.models.vaults import Skill, VaultOperation, VaultType
 from ctxvault.utils.config import create_vault, get_vault_config, get_vaults
@@ -80,10 +80,15 @@ def write_file(vault_name: str, file_path: str, content: str, overwrite: bool = 
     vault._require_operation(VaultOperation.WRITE)
     vault.write_file(file_path=file_path, content=content, overwrite=overwrite, agent_metadata=agent_metadata)
 
-def list_documents(vault_name: str)-> list[VaultDocumentInfo]:
+def list_documents(vault_name: str)-> list[SemanticDocumentInfo]:
     vault = _get_vault(vault_name=vault_name)
     vault._require_operation(VaultOperation.LIST_DOCUMENTS)
     return vault.list_documents()
+
+def list_skills(vault_name: str)-> list[SkillDocumentInfo]:
+    vault = _get_vault(vault_name=vault_name)
+    vault._require_operation(VaultOperation.LIST_SKILLS)
+    return vault.list_skills()
 
 def read_skill(vault_name: str, skill_name: str)-> Skill:
     vault = _get_vault(vault_name=vault_name)

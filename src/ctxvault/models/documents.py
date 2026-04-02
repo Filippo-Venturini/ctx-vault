@@ -13,5 +13,3 @@ class SkillDocumentInfo(BaseDocumentInfo):
     skill_name: str
     description: str | None = None
     last_modified: str
-
-VaultDocumentInfo = Union[SemanticDocumentInfo, SkillDocumentInfo]
