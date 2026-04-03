@@ -35,7 +35,7 @@ body::before {
   z-index: -1;
   background:
     linear-gradient(180deg, rgba(244,241,236,0.35) 0%, rgba(244,241,236,0.92) 60%, rgba(244,241,236,1) 100%),
-    url("./../assets/background.jpg") center top / cover no-repeat;
+    url("./assets/background.jpg") center top / cover no-repeat;
   transform: scaleX(-1);
 }
 
