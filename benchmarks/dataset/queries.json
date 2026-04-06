@@ -22,12 +22,52 @@
   {
     "query": "What matters when choosing an embedding model for retrieval?",
     "expected_vault": "technology",
-    "relevant_chunk_ids": ["tech_06_embedding_model_selection", "tech_09_semantic_search_precision"]
+    "relevant_chunk_ids": ["tech_06_embedding_model_selection", "tech_09_semantic_search_precision", "tech_12_embedding_fine_tuning"]
   },
   {
     "query": "Why do multi agent systems need scoped retrieval boundaries?",
     "expected_vault": "technology",
     "relevant_chunk_ids": ["tech_07_access_control_in_ai_systems", "tech_08_shared_vs_isolated_indexes"]
+  },
+  {
+    "query": "What is the tradeoff between chunk size and retrieval precision?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_11_retrieval_pipeline_design", "tech_09_semantic_search_precision"]
+  },
+  {
+    "query": "How does recursive text splitting work compared to fixed-size chunking?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_11_retrieval_pipeline_design"]
+  },
+  {
+    "query": "How can cross-encoder re-ranking improve search quality?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_11_retrieval_pipeline_design", "tech_13_hybrid_search_architectures"]
+  },
+  {
+    "query": "What is contrastive learning for embedding fine-tuning?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_12_embedding_fine_tuning"]
+  },
+  {
+    "query": "How to generate synthetic training data for retrieval models?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_12_embedding_fine_tuning"]
+  },
+  {
+    "query": "What is Reciprocal Rank Fusion and how does it merge search results?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_13_hybrid_search_architectures"]
+  },
+  {
+    "query": "Why does pure vector search miss exact keyword matches?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_13_hybrid_search_architectures", "tech_09_semantic_search_precision"]
+  },
+  {
+    "query": "Which vector databases support hybrid search natively?",
+    "expected_vault": "technology",
+    "relevant_chunk_ids": ["tech_13_hybrid_search_architectures"]
   },
 
   {
@@ -53,12 +93,42 @@
   {
     "query": "What documents help prove compliance during audits?",
     "expected_vault": "legal",
-    "relevant_chunk_ids": ["legal_05_compliance_documentation", "legal_08_internal_audit_trails"]
+    "relevant_chunk_ids": ["legal_05_compliance_documentation", "legal_08_internal_audit_trails", "legal_13_regulatory_compliance_frameworks"]
   },
   {
     "query": "What is information governance in organizations?",
     "expected_vault": "legal",
     "relevant_chunk_ids": ["legal_10_information_governance", "legal_09_policy_exception_management"]
+  },
+  {
+    "query": "What are the GDPR requirements for data breach notification timelines?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_11_data_breach_notification"]
+  },
+  {
+    "query": "What must a breach notification include and who should be notified?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_11_data_breach_notification"]
+  },
+  {
+    "query": "Who owns intellectual property created during a software development contract?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_12_intellectual_property_agreements"]
+  },
+  {
+    "query": "How do copyleft licenses like GPL affect proprietary software projects?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_12_intellectual_property_agreements"]
+  },
+  {
+    "query": "What is a regulatory compliance framework and what does it include?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_13_regulatory_compliance_frameworks", "legal_05_compliance_documentation"]
+  },
+  {
+    "query": "How should organizations conduct compliance risk assessments?",
+    "expected_vault": "legal",
+    "relevant_chunk_ids": ["legal_13_regulatory_compliance_frameworks"]
   },
 
   {
@@ -90,5 +160,45 @@
     "query": "Why are accurate patient records important for continuity of care?",
     "expected_vault": "medicine",
     "relevant_chunk_ids": ["med_06_patient_record_management", "med_10_care_documentation"]
+  },
+  {
+    "query": "What is the role of metformin in type 2 diabetes management?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_11_diabetes_management"]
+  },
+  {
+    "query": "How does continuous glucose monitoring help diabetes patients?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_11_diabetes_management"]
+  },
+  {
+    "query": "What complications should be screened for in diabetic patients?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_11_diabetes_management"]
+  },
+  {
+    "query": "What are the phases of cardiac rehabilitation after a heart event?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_12_cardiac_rehabilitation"]
+  },
+  {
+    "query": "How does cardiac rehabilitation reduce cardiovascular mortality?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_12_cardiac_rehabilitation"]
+  },
+  {
+    "query": "What is antibiotic de-escalation and why is it important?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_13_antibiotic_stewardship"]
+  },
+  {
+    "query": "How does procalcitonin help guide antibiotic prescribing decisions?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_13_antibiotic_stewardship"]
+  },
+  {
+    "query": "What evidence supports shorter antibiotic treatment durations?",
+    "expected_vault": "medicine",
+    "relevant_chunk_ids": ["med_13_antibiotic_stewardship"]
   }
 ]

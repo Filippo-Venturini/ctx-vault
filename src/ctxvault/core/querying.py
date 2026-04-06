@@ -35,4 +35,3 @@ def query(query_txt: str, config: dict, filters: dict | None = None)-> dict:
 def list_documents(config: dict)-> list[SemanticDocumentInfo]:
     metadatas = chroma_store.get_all_metadatas(config=config)
     return build_documents_from_metadatas(metadatas=metadatas)
-    

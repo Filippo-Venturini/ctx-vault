@@ -9,7 +9,7 @@ def index_file(file_path: str, config: dict, agent_metadata: dict | None = None)
     text, file_type = extract_text(path=file_path)
     doc_id = get_doc_id(path=file_path)
 
-    chunks = chunking(text, chunk_size=50)
+    chunks = chunking(text, file_type=file_type)
 
     embeddings = embed_list(chunks=chunks)
 

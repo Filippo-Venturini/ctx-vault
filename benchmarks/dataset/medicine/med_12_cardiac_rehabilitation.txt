@@ -1,0 +1,13 @@
+Title: Cardiac Rehabilitation Programs and Outcomes
+
+Cardiac rehabilitation is a medically supervised program designed to improve cardiovascular health after heart events such as myocardial infarction, coronary artery bypass grafting, or percutaneous coronary intervention. These programs combine exercise training, education, and counseling to help patients recover and reduce the risk of future cardiac events.
+
+Phase I cardiac rehabilitation begins during hospitalization and focuses on early mobilization, patient education about the cardiac event, and psychological assessment. Patients are gradually progressed from bed rest to walking and stair climbing before discharge. Education covers medication management, recognition of warning signs, and the importance of lifestyle modification.
+
+Phase II is an outpatient program typically lasting 8 to 12 weeks. Supervised exercise sessions occur two to three times per week and include continuous or interval aerobic training on treadmills, stationary bicycles, or elliptical machines. Exercise intensity is prescribed based on graded exercise testing results and is monitored using heart rate, blood pressure, and electrocardiographic telemetry. Resistance training is introduced after the initial aerobic phase to improve muscular strength and endurance.
+
+Risk factor modification is addressed comprehensively during Phase II. Lipid management aims for LDL cholesterol below 70 mg/dL in high-risk patients through statin therapy and dietary changes. Blood pressure control targets below 130/80 mmHg using a combination of medication, sodium restriction, and regular exercise. Smoking cessation support includes behavioral counseling and pharmacotherapy. Diabetes management is optimized with attention to glycemic control during exercise.
+
+Psychosocial outcomes are an important component of cardiac rehabilitation. Depression affects approximately 20 percent of patients after a cardiac event and is associated with increased mortality and reduced adherence to treatment. Cardiac rehabilitation programs that include psychological screening and intervention have shown improved depression scores, reduced anxiety, and better quality of life. Social support groups and stress management techniques complement individual counseling.
+
+Long-term maintenance in Phase III and IV emphasizes sustained lifestyle changes and continued exercise. Meta-analyses consistently demonstrate that cardiac rehabilitation reduces cardiovascular mortality by 20 to 30 percent and hospital readmissions by 25 percent. Despite these benefits, cardiac rehabilitation remains underutilized, with referral and participation rates below 50 percent in many healthcare systems.

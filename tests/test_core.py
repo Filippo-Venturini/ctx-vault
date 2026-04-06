@@ -139,3 +139,33 @@ def test_list_vaults_scope(mock_vault_config):
     result = vault_router.list_vaults()
     for v in result:
         assert v.get("scope") in ("local", "global")
+
+# ── Chunking strategies ────────────────────────────────────────────────────
+
+def test_chunking_default_uses_recursive():
+    from ctxvault.utils.chuncking import chunking
+    text = " ".join(["word"] * 500)
+    chunks = chunking(text)
+    assert len(chunks) > 1
+    for chunk in chunks:
+        assert len(chunk.split()) <= 400
+
+def test_chunking_markdown_splits_on_headers():
+    from ctxvault.utils.chuncking import chunking
+    md_text = "# Title\n\nIntro paragraph.\n\n## Section A\n\nContent A.\n\n## Section B\n\nContent B."
+    chunks = chunking(md_text, file_type=".md")
+    assert len(chunks) >= 2
+
+def test_chunking_backward_compatible():
+    from ctxvault.utils.chuncking import chunking
+    text = "hello world " * 100
+    chunks = chunking(text)
+    assert len(chunks) >= 1
+    assert all(isinstance(c, str) for c in chunks)
+
+def test_chunking_new_defaults():
+    from ctxvault.utils.chuncking import chunking
+    import inspect
+    sig = inspect.signature(chunking)
+    assert sig.parameters["chunk_size"].default == 400
+    assert sig.parameters["overlap"].default == 100

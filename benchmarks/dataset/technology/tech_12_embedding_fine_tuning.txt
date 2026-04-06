@@ -1,0 +1,13 @@
+Title: Embedding Model Fine-Tuning for Domain Retrieval
+
+General-purpose embedding models trained on broad web corpora often underperform when applied to specialized domains like biomedical literature, legal documents, or technical manuals. Fine-tuning the embedding model on domain-specific data can dramatically improve retrieval quality.
+
+The most common fine-tuning approach uses contrastive learning with triplet or in-batch negative sampling. Training data consists of query-positive pairs, where the positive is a passage known to be relevant to the query. Hard negatives — passages that are semantically similar but not relevant — are particularly important for teaching the model to make fine distinctions within the domain.
+
+Generating training data for embedding fine-tuning can be done synthetically. A large language model reads each passage in the corpus and generates several questions that the passage would answer. These synthetic query-passage pairs provide a scalable source of training signal without manual annotation. The quality of synthetic training data depends heavily on the diversity and specificity of generated questions.
+
+Another approach is adapter-based fine-tuning, where a small adapter module is trained on top of a frozen base model. This preserves the general knowledge of the pre-trained model while learning domain-specific representations. Adapter methods require significantly less training data and compute than full fine-tuning, making them practical for smaller organizations.
+
+Evaluation of fine-tuned embedding models should use held-out query sets with known relevant passages. Key metrics include recall at different cutoffs (R@5, R@10, R@100), mean reciprocal rank (MRR), and normalized discounted cumulative gain (nDCG). It is important to evaluate on queries that differ from the training distribution to measure generalization rather than memorization.
+
+The deployment of fine-tuned models introduces additional complexity. The model must be versioned and tracked, existing document embeddings must be recomputed when the model changes, and A/B testing infrastructure is needed to validate that the fine-tuned model actually improves end-to-end system quality rather than just retrieval metrics in isolation.

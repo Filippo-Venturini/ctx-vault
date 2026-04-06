@@ -1,0 +1,13 @@
+Title: Data Breach Notification Requirements
+
+Organizations that experience a data breach involving personal information are subject to notification requirements that vary by jurisdiction. In general, a data breach is defined as unauthorized access to, disclosure of, or loss of personal data that compromises confidentiality, integrity, or availability.
+
+The notification timeline is a critical compliance factor. Many jurisdictions require notification within 72 hours of becoming aware of the breach. The European Union's General Data Protection Regulation mandates notification to the supervisory authority without undue delay and, where feasible, within 72 hours. Several US states have their own breach notification laws with varying timelines ranging from 30 to 90 days.
+
+The content of breach notifications must typically include a description of the nature of the breach, the categories and approximate number of affected individuals, the likely consequences of the breach, and the measures taken or proposed to address the breach and mitigate its effects. Organizations should also provide contact information for their data protection officer or other point of contact where affected individuals can obtain more information.
+
+Notification must be provided to affected individuals when the breach is likely to result in a high risk to their rights and freedoms. This includes situations where the compromised data includes financial information, health records, authentication credentials, or government identification numbers. The notification to individuals should be written in clear and plain language and should include specific recommendations for steps they can take to protect themselves.
+
+Organizations are expected to maintain a breach register that documents all breaches regardless of whether notification was required. This register should record the facts of the breach, its effects, and the remedial actions taken. The register serves as evidence of compliance and is subject to inspection by regulatory authorities.
+
+Failure to comply with breach notification requirements can result in significant penalties. Under GDPR, fines can reach up to 10 million euros or 2 percent of annual global turnover, whichever is higher. Organizations should establish incident response procedures that include breach detection, assessment, containment, notification, and post-incident review to ensure timely and compliant handling of data breaches.

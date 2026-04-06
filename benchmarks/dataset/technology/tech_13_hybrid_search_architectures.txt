@@ -1,0 +1,11 @@
+Title: Hybrid Search Architectures
+
+Pure vector search excels at capturing semantic meaning but can miss exact keyword matches that are critical in many domains. A user searching for a specific function name, error code, or technical term may not find relevant results if the vector embedding does not capture that exact surface form. Conversely, pure keyword search using BM25 or TF-IDF finds exact matches efficiently but fails to understand paraphrasing, synonyms, or conceptual similarity.
+
+Hybrid search combines both approaches to get the best of both worlds. The most common architecture runs vector search and keyword search in parallel over the same corpus, then merges the results using a fusion algorithm. Reciprocal Rank Fusion (RRF) is the most widely adopted fusion method due to its simplicity and robustness. For each result, RRF computes a score of 1/(k + rank) where rank is the position in each result list and k is a constant (typically 60). The final score sums contributions from all retrievers, naturally handling cases where a document appears in only one result set.
+
+An alternative to RRF is learned fusion, where a lightweight model learns optimal weights for combining scores from different retrievers. This can outperform RRF when sufficient training data is available, but adds complexity and risks overfitting to the training distribution.
+
+Some vector databases support hybrid search natively. Weaviate provides a single API call with an alpha parameter that blends BM25 and vector scores. Qdrant supports sparse vectors alongside dense vectors, enabling BM25-style retrieval within the same index. For databases that only support dense vectors like ChromaDB, hybrid search requires maintaining a separate keyword index and merging results in application code.
+
+A more advanced approach adds a re-ranking stage after fusion. A cross-encoder model evaluates each query-document pair jointly, producing a relevance score that considers the full interaction between query and document tokens. Cross-encoders are too expensive to run over the entire corpus but work well as a second-stage ranker over the top candidates from hybrid retrieval. This three-stage pipeline of retrieve-fuse-rerank represents the current best practice for production search systems.
