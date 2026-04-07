@@ -167,7 +167,15 @@ Three scenarios — each with full code and setup instructions.
 pip install ctxvault
 ```
 
-### From source
+### From source (uv — recommended)
+```bash
+git clone https://github.com/Filippo-Venturini/ctxvault
+cd ctxvault
+uv sync            # creates .venv and installs all dependencies
+uv run ctxvault    # run the CLI
+```
+
+### From source (pip)
 ```bash
 git clone https://github.com/Filippo-Venturini/ctxvault
 cd ctxvault
@@ -710,6 +718,12 @@ Contributions welcome! Please check the [issues](https://github.com/Filippo-Vent
 ```bash
 git clone https://github.com/Filippo-Venturini/ctxvault
 cd ctxvault
+
+# With uv (recommended)
+uv sync --extra dev
+uv run pytest
+
+# With pip
 python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 pytest
