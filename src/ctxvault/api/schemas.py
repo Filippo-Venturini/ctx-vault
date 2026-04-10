@@ -85,3 +85,8 @@ class WriteSkillResponse(BaseModel):
 
 class SkillResponse(BaseModel):
     skill: SkillOutput
+
+class WarmupStatusResponse(BaseModel):
+    ready: bool
+    status: str
+    message: str
