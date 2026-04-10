@@ -7,31 +7,86 @@ from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 import logging
 import argparse
+import asyncio
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-@asynccontextmanager
-async def lifespan(server):
-    logger.info("ctxvault MCP server starting — warming up...")
-    vault_router.warmup()
-    logger.info("Warm-up complete.")
-    yield
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--agent", type=str, default=None)
 args, _ = parser.parse_known_args()
 
+@asynccontextmanager
+async def lifespan(server):
+    logger.info("ctxvault MCP server starting...")
+    
+    warmup_task = asyncio.create_task(async_warmup())
+    
+    yield
+    
+    logger.info("ctxvault MCP server shutting down...")
+    if not warmup_task.done():
+        warmup_task.cancel()
+
 AGENT_ID = args.agent
 
 mcp = FastMCP("ctxvault", lifespan=lifespan)
+
+warmup_complete = asyncio.Event()
+
+async def async_warmup():
+    try:
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, vault_router.warmup)
+        warmup_complete.set()
+        logger.info("Warm-up complete — embeddings ready")
+    except Exception as e:
+        logger.error(f"Warm-up failed: {e}")
+        warmup_complete.set()
+
+async def ensure_warmup(wait: bool = False, timeout_seconds: int = 90):
+    """
+    Check if warmup is complete. By default, raises an error if not ready.
+    
+    Args:
+        wait: If True, wait for warmup to complete (up to timeout_seconds)
+        timeout_seconds: Maximum time to wait if wait=True
+    
+    Raises:
+        ValueError: If warmup not complete and wait=False
+        ValueError: If warmup times out when wait=True
+    """
+    if not warmup_complete.is_set():
+        if not wait:
+            raise ValueError(
+                "Embedding model is still initializing. This typically takes 1-2 minutes on first startup. "
+                "Please retry this operation in 30-60 seconds. Subsequent operations will be instant."
+            )
+        
+        logger.info("Waiting for embeddings to load...")
+        try:
+            await asyncio.wait_for(warmup_complete.wait(), timeout=timeout_seconds)
+        except asyncio.TimeoutError:
+            raise ValueError(
+                "Embedding model initialization timed out. Please check server logs and retry."
+            )
+
+@mcp.tool(description="Check if the embedding model has finished initializing. Use this to verify warmup status before attempting queries or writes.")
+def warmup_status() -> WarmupStatusResponse:
+    return WarmupStatusResponse(
+        ready = warmup_complete.is_set(),
+        status = "ready" if warmup_complete.is_set() else "warming_up",
+        message = "Embedding model is ready" if warmup_complete.is_set() else "Embedding model is initializing (1-2 minutes)"
+    )
 
 def check_access(vault_name: str, agent_name: str):
     if not vault_router.is_agent_authorized(vault_name, agent_name):
         raise PermissionError(f"Agent '{agent_name}' is not authorized to access vault '{vault_name}'")
 
 @mcp.tool(description="Search for relevant information in a CtxVault vault using semantic similarity. Use this when the user asks a question that might be answered by their personal knowledge base or documents. Returns the most relevant text chunks with their source files.")
-def query(vault_name: str, query: str) -> QueryResponse:
+async def query(vault_name: str, query: str) -> QueryResponse:
+    await ensure_warmup()
+    
     try:
         check_access(vault_name, AGENT_ID)
         result = vault_router.query(vault_name=vault_name, text=query, filters=None)
@@ -44,7 +99,9 @@ def query(vault_name: str, query: str) -> QueryResponse:
         raise ValueError(e)
 
 @mcp.tool(description="Save new information or agent-generated content to a semantic vault for future retrieval. Use this only with semantic vaults, to persist important context, summaries, or notes that should be remembered across sessions. Supports .txt, .md, and .docx formats.")
-def write_doc(vault_name: str, file_path: str, content: str, generated_by: str, overwrite: bool = False)-> WriteDocResponse:
+async def write_doc(vault_name: str, file_path: str, content: str, generated_by: str, overwrite: bool = False)-> WriteDocResponse:
+    await ensure_warmup()
+    
     try:
         check_access(vault_name, AGENT_ID)
         timestamp = datetime.now(timezone.utc).isoformat()
@@ -83,7 +140,9 @@ def list_docs(vault_name: str) -> ListDocsResponse:
         raise ValueError(e)
     
 @mcp.tool(description="Create and store a new skill in a skill vault. Use this to persist procedural knowledge, instructions, or how-to guides that agents can retrieve and execute later. The skill will be indexed by name and description for fast lookup. Use this only with skill vaults.")
-def write_skill(vault_name: str, skill_name: str, description: str, instructions: str, overwrite: bool = False)-> WriteSkillResponse:
+async def write_skill(vault_name: str, skill_name: str, description: str, instructions: str, overwrite: bool = False)-> WriteSkillResponse:
+    await ensure_warmup()
+    
     try:
         check_access(vault_name, AGENT_ID)
         skill_input = SkillInput(name=skill_name, description=description, instructions=instructions)
