@@ -79,7 +79,20 @@ class SemanticVault(BaseVault):
             raise EmptyQueryError("Query text cannot be empty.")
 
         result_dict = querying.query(query_txt=text, config=self.config, filters=filters)
-        
+
+        raw_triples = list(zip(
+            result_dict["documents"][0],
+            result_dict["metadatas"][0],
+            result_dict["distances"][0]
+        ))
+
+        valid_triples = [(d, m, dist) for d, m, dist in raw_triples if d is not None and m is not None]
+        skipped = len(raw_triples) - len(valid_triples)
+
+        if skipped > 0:
+            import warnings
+            warnings.warn(f"Skipped {skipped} stale hit(s) with missing backing records.")
+
         chunks_match = [
             ChunkMatch(
                 chunk_id=m["chunk_id"],
@@ -92,7 +105,7 @@ class SemanticVault(BaseVault):
                 artifact_type=m.get("artifact_type"),
                 topic=m.get("topic")
             )
-            for d, m, dist in zip(result_dict["documents"][0], result_dict["metadatas"][0], result_dict["distances"][0])
+            for d, m, dist in valid_triples
         ]
         return QueryResult(query=text, results=chunks_match)
 
