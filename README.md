@@ -1,5 +1,3 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/filippo-venturini-ctxvault-badge.png)](https://mseep.ai/app/filippo-venturini-ctxvault)
-
 <div align="center">
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Filippo-Venturini/ctxvault/main/assets/logo_white_text.svg" width="400" height="100">
@@ -750,6 +748,12 @@ If you use CtxVault in your research or project, please cite:
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+## Security
+
+[![MseeP.ai Security Assessment](https://mseep.net/pr/filippo-venturini-ctxvault-badge.png)](https://mseep.ai/app/filippo-venturini-ctxvault)
 
 ---
 
