@@ -754,6 +754,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Security
 
 [![MseeP.ai Security Assessment](https://mseep.net/pr/filippo-venturini-ctxvault-badge.png)](https://mseep.ai/app/filippo-venturini-ctxvault)
+[![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/2f4c1ef5-2f5d-4b22-af46-259206879fc0)
 
 ---
 
